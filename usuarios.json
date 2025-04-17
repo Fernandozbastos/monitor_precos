@@ -1,0 +1,53 @@
+{
+    "admin": {
+        "senha": "7b98e1a070195ab1e8b2d1eea2df69418394fcf2d0ef85daa67dd5d9fc9e4fff",
+        "nome": "Administrador",
+        "tipo": "admin",
+        "ativo": true,
+        "email": "admin@sistema.local",
+        "data_criacao": "2025-04-14 19:06:33",
+        "ultimo_acesso": "2025-04-15 17:19:42",
+        "permissoes": [
+            "*"
+        ],
+        "cliente_atual": "Bastin Marketing"
+    },
+    "Stefani": {
+        "senha": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+        "nome": "Stefani",
+        "tipo": "usuario",
+        "ativo": true,
+        "email": "admin",
+        "data_criacao": "2025-04-14 19:14:28",
+        "ultimo_acesso": null,
+        "permissoes": []
+    },
+    "fernando": {
+        "senha": "7b98e1a070195ab1e8b2d1eea2df69418394fcf2d0ef85daa67dd5d9fc9e4fff",
+        "nome": "Fernando Bastos",
+        "tipo": "admin",
+        "ativo": true,
+        "cliente_atual": ""
+    },
+    "usuario": {
+        "senha": "9250e222c4c71f0c58d4c54b50a880a312e9f9fed55d5c3aa0b0e860ded99165",
+        "nome": "Usuario Teste",
+        "tipo": "usuario",
+        "ativo": true,
+        "cliente_atual": "Bastin Marketing"
+    },
+    "123": {
+        "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "nome": "123",
+        "tipo": "usuario",
+        "ativo": true,
+        "cliente_atual": "fernando"
+    },
+    "12345": {
+        "senha": "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5",
+        "nome": "12345",
+        "tipo": "usuario",
+        "ativo": true,
+        "cliente_atual": "Tparts"
+    }
+}

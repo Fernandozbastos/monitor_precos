@@ -1,0 +1,5 @@
+{
+    "tuningparts.com.br": "strong.preco-novo span[itemprop=\"price\"]",
+    "produto.mercadolivre.com.br": "#price span.andes-money-amount__fraction",
+    "loja.tparts.com.br": "strong.preco-novo span[itemprop=\"price\"]"
+}

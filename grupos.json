@@ -1,0 +1,50 @@
+{
+    "all": {
+        "nome": "Todos",
+        "descricao": "Grupo padrão que inclui todos os clientes",
+        "clientes": [
+            "Bastin Marketing",
+            "Fernando",
+            "fernando",
+            "Tparts",
+            "Facini"
+        ],
+        "usuarios": [
+            "admin"
+        ]
+    },
+    "usuario": {
+        "nome": "Grupo de Usuario Teste",
+        "descricao": "Grupo pessoal do usuário usuario",
+        "clientes": [
+            "Bastin Marketing",
+            "Fernando"
+        ],
+        "usuarios": [
+            "usuario"
+        ]
+    },
+    "123": {
+        "nome": "Grupo de 123",
+        "descricao": "Grupo pessoal do usuário 123",
+        "clientes": [
+            "Bastin Marketing",
+            "fernando"
+        ],
+        "usuarios": [
+            "123"
+        ]
+    },
+    "12345": {
+        "nome": "Grupo de 12345",
+        "descricao": "Grupo pessoal do usuário 12345",
+        "clientes": [
+            "Tparts",
+            "Facini"
+        ],
+        "usuarios": [
+            "12345",
+            "123"
+        ]
+    }
+}

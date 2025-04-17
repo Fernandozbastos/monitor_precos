@@ -1,0 +1,7 @@
+cliente,produto,concorrente,url,seletor_css
+TuningParts,Rack Teto BYD,TuningParts,https://www.tuningparts.com.br/rack-teto-byd-dolphin-mini-fixacao-porta-prime?_pid=96xdc,"strong.preco-novo span[itemprop=""price""]"
+TuningParts,Soleira de Porta BYD Yuan Plus 2023,TuningParts,https://www.tuningparts.com.br/soleira-de-porta-byd-yuan-plus-2023-aco-inox-baixo-relevo?_pid=Uqtdc,"strong.preco-novo span[itemprop=""price""]"
+TuningParts,Soleira de Porta BYD Yuan 2023,Oneparts Mercado Livre,https://produto.mercadolivre.com.br/MLB-5045897414-byd-yuan-pro-2024-soleira-br-em-inox-_JM,#price span.andes-money-amount__fraction
+TuningParts,Soleira de Porta BYD Yuan 2023,Oneparts Meli,https://produto.mercadolivre.com.br/MLB-3842666007-byd-yuan-pro-2024-soleira-br-pedaleira-at-descanso-inox-_JM,#price span.andes-money-amount__fraction
+Bastin Marketing,Teste,TuningParts,https://www.tuningparts.com.br/intake-race-chrome-renault-sandero-rs-15-vermelho-rci-com-filtro-de-ar?_pid=Ipwcc,"strong.preco-novo span[itemprop=""price""]"
+Bastin Marketing,Teste,Tuningparts,https://www.tuningparts.com.br/intake-race-chrome-renault-sandero-rs-15-vermelho-rci-com-filtro-de-ar?_pid=Ipwcc,"strong.preco-novo span[itemprop=""price""]"

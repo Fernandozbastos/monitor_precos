@@ -1,0 +1,241 @@
+[2025-04-14 18:54:15] [INFO] Arquivo dominios_seletores.json criado com sucesso
+[2025-04-14 18:54:15] [INFO] Arquivo agendamento_config.json criado com sucesso
+[2025-04-14 18:54:15] [INFO] Diretório de backups criado com sucesso
+[2025-04-14 18:54:15] [INFO] Sistema inicializado com sucesso
+[2025-04-14 18:54:15] [ERROR] Erro inesperado: name 'tipo_usuario' is not defined
+[2025-04-14 18:54:27] [ERROR] Erro inesperado: name 'tipo_usuario' is not defined
+[2025-04-14 18:54:29] [ERROR] Erro inesperado: name 'tipo_usuario' is not defined
+[2025-04-14 18:57:14] [ERROR] Erro inesperado: name 'tipo_usuario' is not defined
+[2025-04-14 18:57:15] [ERROR] Erro inesperado: name 'tipo_usuario' is not defined
+[2025-04-14 18:57:16] [ERROR] Erro inesperado: name 'tipo_usuario' is not defined
+[2025-04-14 19:03:55] [INFO] Sistema inicializado com sucesso
+[2025-04-14 19:03:55] [ERROR] Erro inesperado: name 'tipo_usuario' is not defined
+[2025-04-14 19:06:33] [INFO] Arquivo de usuários criado com usuário admin padrão
+[2025-04-14 19:06:33] [INFO] Arquivo de usuários organizado com sucesso
+[2025-04-14 19:06:37] [INFO] Login bem-sucedido: admin
+[2025-04-14 19:06:48] [INFO] Arquivo de usuários organizado com sucesso
+[2025-04-14 19:06:48] [INFO] Sistema inicializado com sucesso
+[2025-04-14 19:06:48] [INFO] Arquivo de usuários organizado com sucesso
+[2025-04-14 19:06:53] [WARNING] Tentativa de login falhou: admin
+[2025-04-14 19:06:56] [INFO] Login bem-sucedido: admin
+[2025-04-14 19:06:56] [INFO] Usuário admin (admin) fez login
+[2025-04-14 19:13:11] [INFO] Login bem-sucedido: admin
+[2025-04-14 19:13:11] [INFO] Senha alterada para o usuário: admin
+[2025-04-14 19:14:28] [INFO] Novo usuário adicionado: Stefani por None
+[2025-04-14 19:14:28] [INFO] Usuário 'Stefani' adicionado por admin
+[2025-04-15 17:08:56] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-15 17:08:58] [INFO] Arquivo de usuários organizado com sucesso
+[2025-04-15 17:08:58] [INFO] Arquivo de grupos criado com grupo padrão 'Todos'
+[2025-04-15 17:08:58] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:08:58] [INFO] Arquivo de usuários organizado com sucesso
+[2025-04-15 17:09:09] [INFO] Login bem-sucedido: admin
+[2025-04-15 17:09:09] [INFO] Usuário admin (admin) fez login
+[2025-04-15 17:19:36] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-15 17:19:38] [INFO] Arquivo de usuários organizado com sucesso
+[2025-04-15 17:19:38] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:19:38] [INFO] Arquivo de usuários organizado com sucesso
+[2025-04-15 17:19:42] [INFO] Login bem-sucedido: admin
+[2025-04-15 17:19:42] [INFO] Usuário admin (admin) fez login
+[2025-04-15 17:33:29] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-15 17:39:31] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:39:38] [INFO] Login bem-sucedido: admin
+[2025-04-15 17:39:38] [INFO] Usuário admin (admin) fez login
+[2025-04-15 17:39:43] [INFO] Cliente atual alterado para 'TuningParts' pelo usuário: admin
+[2025-04-15 17:40:33] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
+[2025-04-15 17:40:41] [INFO] Cliente atual alterado para 'TuningParts' pelo usuário: admin
+[2025-04-15 17:45:25] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-15 17:45:27] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:45:32] [INFO] Login bem-sucedido: admin
+[2025-04-15 17:45:32] [INFO] Usuário admin (admin) fez login
+[2025-04-15 17:45:42] [INFO] Cliente 'Bastin Marketing' adicionado aos grupos de administração
+[2025-04-15 17:45:42] [INFO] Cliente 'Bastin Marketing' adicionado por admin
+[2025-04-15 17:45:42] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
+[2025-04-15 17:45:53] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
+[2025-04-15 17:45:59] [INFO] Cliente atual alterado para 'TuningParts' pelo usuário: admin
+[2025-04-15 17:46:16] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-15 17:46:19] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:46:33] [WARNING] Tentativa de login falhou: admn
+[2025-04-15 17:47:03] [WARNING] Tentativa de login falhou: dmin
+[2025-04-15 17:47:12] [INFO] Login bem-sucedido: admin
+[2025-04-15 17:47:12] [INFO] Usuário admin (admin) fez login
+[2025-04-15 17:48:06] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
+[2025-04-15 17:51:44] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-15 17:51:47] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:51:50] [INFO] Login bem-sucedido: admin
+[2025-04-15 17:51:50] [INFO] Usuário admin (admin) fez login
+[2025-04-15 17:52:02] [INFO] Cliente atual alterado para 'TuningParts' pelo usuário: admin
+[2025-04-15 17:53:29] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
+[2025-04-15 17:54:32] [INFO] Produto 'Teste' do cliente 'Bastin Marketing' adicionado por admin
+[2025-04-15 17:54:32] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-15 17:57:04] [INFO] Novo usuário adicionado: fernando por admin
+[2025-04-15 17:57:04] [WARNING] Tentativa de adicionar usuário a grupo inexistente: admin por admin
+[2025-04-15 17:57:04] [INFO] Usuário 'fernando' adicionado por admin
+[2025-04-15 17:57:13] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-15 17:57:15] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:57:18] [INFO] Login bem-sucedido: fernando
+[2025-04-15 17:57:18] [INFO] Usuário fernando (admin) fez login
+[2025-04-15 17:57:57] [INFO] Novo usuário adicionado: usuario por fernando
+[2025-04-15 17:57:57] [INFO] Grupo pessoal criado para o usuário: usuario
+[2025-04-15 17:57:57] [INFO] Usuário 'usuario' adicionado por fernando
+[2025-04-15 17:58:02] [INFO] Sistema encerrado pelo usuário fernando
+[2025-04-15 17:58:04] [INFO] Sistema inicializado com sucesso
+[2025-04-15 17:58:07] [INFO] Login bem-sucedido: usuario
+[2025-04-15 17:58:07] [INFO] Usuário usuario (usuario) fez login
+[2025-04-15 17:58:31] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: usuario
+[2025-04-15 17:58:38] [WARNING] Usuário usuario tentou adicionar produto para cliente não autorizado: Bastin Marketing
+[2025-04-15 17:58:38] [INFO] Cliente Bastin Marketing adicionado ao grupo do usuário usuario
+[2025-04-16 11:24:56] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:25:01] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:25:05] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:25:05] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:25:10] [ERROR] Erro inesperado: name 'obter_grupos_usuario' is not defined
+[2025-04-16 11:29:35] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:29:37] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:29:41] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:29:41] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:29:43] [ERROR] Erro inesperado: name 'obter_grupos_usuario' is not defined
+[2025-04-16 11:30:52] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:30:54] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:30:57] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:30:57] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:31:58] [INFO] Produto 'Teste' do cliente 'Bastin Marketing' adicionado por usuario
+[2025-04-16 11:31:58] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-16 11:42:46] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:42:48] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:42:53] [WARNING] Tentativa de login falhou: user
+[2025-04-16 11:42:57] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:42:57] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:43:06] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: usuario
+[2025-04-16 11:44:09] [INFO] Produto 'Teste' do cliente 'Bastin Marketing' adicionado por usuario
+[2025-04-16 11:44:09] [ERROR] Erro inesperado: name 'adicionar_cliente_grupo_usuario' is not defined
+[2025-04-16 11:46:30] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:46:32] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:46:36] [WARNING] Tentativa de login falhou: aadmin
+[2025-04-16 11:46:41] [INFO] Login bem-sucedido: admin
+[2025-04-16 11:46:41] [INFO] Usuário admin (admin) fez login
+[2025-04-16 11:46:55] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-16 11:46:57] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:47:00] [WARNING] Tentativa de login falhou: uusuario
+[2025-04-16 11:47:05] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:47:05] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:47:08] [ERROR] Erro inesperado: 'seletor_css'
+[2025-04-16 11:49:57] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:49:59] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:50:02] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:50:02] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:50:04] [ERROR] Erro inesperado: name 'obter_grupos_usuario' is not defined
+[2025-04-16 11:50:47] [ERROR] Erro inesperado: name 'obter_grupos_usuario' is not defined
+[2025-04-16 11:50:49] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:50:51] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:50:53] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:50:53] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:53:31] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:53:33] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:53:36] [INFO] Login bem-sucedido: usuario
+[2025-04-16 11:53:36] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 11:58:03] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 11:58:06] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:58:11] [INFO] Login bem-sucedido: admin
+[2025-04-16 11:58:11] [INFO] Usuário admin (admin) fez login
+[2025-04-16 11:58:42] [INFO] Novo usuário adicionado: 123 por admin
+[2025-04-16 11:58:42] [INFO] Grupo pessoal criado para o usuário: 123
+[2025-04-16 11:58:42] [INFO] Usuário '123' adicionado por admin
+[2025-04-16 11:58:46] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-16 11:58:49] [INFO] Sistema inicializado com sucesso
+[2025-04-16 11:58:50] [INFO] Login bem-sucedido: 123
+[2025-04-16 11:58:50] [INFO] Usuário 123 (usuario) fez login
+[2025-04-16 11:59:03] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: 123
+[2025-04-16 12:10:58] [INFO] Sistema encerrado pelo usuário 123
+[2025-04-16 12:11:00] [INFO] Sistema inicializado com sucesso
+[2025-04-16 12:11:02] [INFO] Login bem-sucedido: 123
+[2025-04-16 12:11:02] [INFO] Usuário 123 (usuario) fez login
+[2025-04-16 12:11:15] [INFO] Produto 'Teste' do cliente 'Bastin Marketing' removido por 123
+[2025-04-16 12:11:21] [INFO] Produto 'Rack Teto BYD' do cliente 'TuningParts' removido por 123
+[2025-04-16 12:11:27] [INFO] Produto 'Soleira de Porta BYD Yuan Plus 2023' do cliente 'TuningParts' removido por 123
+[2025-04-16 12:11:30] [INFO] Produto 'Soleira de Porta BYD Yuan 2023' do cliente 'TuningParts' removido por 123
+[2025-04-16 12:11:31] [INFO] Produto 'Soleira de Porta BYD Yuan 2023' do cliente 'TuningParts' removido por 123
+[2025-04-16 12:11:33] [INFO] Produto 'Teste' do cliente 'Bastin Marketing' removido por 123
+[2025-04-16 12:11:36] [INFO] Produto 'Teste' do cliente 'Bastin Marketing' removido por 123
+[2025-04-16 12:11:42] [WARNING] Usuário 123 tentou adicionar produto para cliente não autorizado: Bastin Marketing
+[2025-04-16 12:11:42] [INFO] Cliente Bastin Marketing adicionado ao grupo do usuário 123
+[2025-04-16 12:12:14] [INFO] Produto 'Abafador Esportivo' do cliente 'Bastin Marketing' adicionado por 123
+[2025-04-16 12:12:14] [ERROR] Erro inesperado: name 'adicionar_cliente_grupo_usuario' is not defined
+[2025-04-16 12:14:17] [INFO] Produto 'Abafador Esportivo' do cliente 'Bastin Marketing' removido por 123
+[2025-04-16 12:15:26] [INFO] Produto 'Lanterna L200 Triton 2008 a 2016' do cliente 'Bastin Marketing' adicionado por 123
+[2025-04-16 12:15:26] [ERROR] Erro inesperado: name 'adicionar_cliente_grupo_usuario' is not defined
+[2025-04-16 12:16:45] [INFO] Sistema encerrado pelo usuário 123
+[2025-04-16 12:16:49] [INFO] Sistema inicializado com sucesso
+[2025-04-16 12:16:51] [INFO] Login bem-sucedido: 123
+[2025-04-16 12:16:51] [INFO] Usuário 123 (usuario) fez login
+[2025-04-16 12:16:55] [INFO] Produto 'Lanterna L200 Triton 2008 a 2016' do cliente 'Bastin Marketing' removido por 123
+[2025-04-16 12:17:28] [INFO] Produto 'Lanterna L200 Triton 2008 a 2016' do cliente 'Bastin Marketing' adicionado por 123
+[2025-04-16 12:17:28] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-16 12:18:29] [INFO] Sistema encerrado pelo usuário 123
+[2025-04-16 12:18:31] [INFO] Sistema inicializado com sucesso
+[2025-04-16 12:18:34] [WARNING] Tentativa de login falhou: admin
+[2025-04-16 12:18:38] [INFO] Login bem-sucedido: usuario
+[2025-04-16 12:18:38] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 14:48:33] [INFO] Cliente 'Fernando' adicionado aos grupos de administração
+[2025-04-16 14:48:33] [INFO] Cliente Fernando adicionado ao grupo do usuário usuario
+[2025-04-16 14:48:33] [INFO] Cliente 'Fernando' adicionado por usuario
+[2025-04-16 14:48:33] [INFO] Cliente atual alterado para 'Fernando' pelo usuário: usuario
+[2025-04-16 14:49:04] [INFO] Produto '1' do cliente 'Fernando' adicionado por usuario
+[2025-04-16 14:49:04] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-16 17:56:44] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 17:56:48] [INFO] Sistema inicializado com sucesso
+[2025-04-16 17:56:49] [INFO] Login bem-sucedido: 123
+[2025-04-16 17:56:49] [INFO] Usuário 123 (usuario) fez login
+[2025-04-16 17:58:43] [INFO] Cliente 'fernando' adicionado aos grupos de administração
+[2025-04-16 17:58:43] [INFO] Cliente fernando adicionado ao grupo do usuário 123
+[2025-04-16 17:58:43] [INFO] Cliente 'fernando' adicionado por 123
+[2025-04-16 17:58:43] [INFO] Cliente atual alterado para 'fernando' pelo usuário: 123
+[2025-04-16 18:00:20] [INFO] Produto 'Produto no usuario 123' do cliente 'fernando' adicionado por 123 no grupo 123
+[2025-04-16 18:00:20] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-16 18:01:15] [INFO] Sistema encerrado pelo usuário 123
+[2025-04-16 18:01:19] [INFO] Sistema inicializado com sucesso
+[2025-04-16 18:01:21] [INFO] Login bem-sucedido: usuario
+[2025-04-16 18:01:21] [INFO] Usuário usuario (usuario) fez login
+[2025-04-16 18:01:46] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: usuario
+[2025-04-16 18:02:18] [INFO] Produto 'Teste' do cliente 'Bastin Marketing' adicionado por usuario no grupo usuario
+[2025-04-16 18:02:18] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-16 18:02:53] [INFO] Cliente atual alterado para 'Fernando' pelo usuário: usuario
+[2025-04-16 18:03:29] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: usuario
+[2025-04-16 18:05:48] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-16 18:05:50] [INFO] Sistema inicializado com sucesso
+[2025-04-16 18:05:54] [INFO] Login bem-sucedido: admin
+[2025-04-16 18:05:54] [INFO] Usuário admin (admin) fez login
+[2025-04-16 18:08:28] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-16 18:09:02] [INFO] Sistema inicializado com sucesso
+[2025-04-16 18:09:11] [INFO] Login bem-sucedido: admin
+[2025-04-16 18:09:11] [INFO] Usuário admin (admin) fez login
+[2025-04-16 18:09:44] [INFO] Novo usuário adicionado: 12345 por admin
+[2025-04-16 18:09:44] [INFO] Grupo pessoal criado para o usuário: 12345
+[2025-04-16 18:09:44] [INFO] Usuário '12345' adicionado por admin
+[2025-04-16 18:10:38] [INFO] Usuário 123 adicionado ao grupo 12345 por admin
+[2025-04-16 18:11:17] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-16 18:11:19] [INFO] Sistema inicializado com sucesso
+[2025-04-16 18:11:24] [INFO] Login bem-sucedido: 12345
+[2025-04-16 18:11:24] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-16 18:11:41] [INFO] Cliente 'Tparts' adicionado aos grupos de administração
+[2025-04-16 18:11:41] [INFO] Cliente Tparts adicionado ao grupo do usuário 12345
+[2025-04-16 18:11:41] [INFO] Cliente 'Tparts' adicionado por 12345
+[2025-04-16 18:11:41] [INFO] Cliente atual alterado para 'Tparts' pelo usuário: 12345
+[2025-04-16 18:12:47] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' adicionado por 12345 no grupo 12345
+[2025-04-16 18:12:47] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-16 18:13:39] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' adicionado por 12345 no grupo 12345
+[2025-04-16 18:13:39] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-16 18:14:57] [INFO] Cliente 'Facini' adicionado aos grupos de administração
+[2025-04-16 18:14:57] [INFO] Cliente Facini adicionado ao grupo do usuário 12345
+[2025-04-16 18:14:57] [INFO] Cliente 'Facini' adicionado por 12345
+[2025-04-16 18:14:57] [INFO] Cliente atual alterado para 'Facini' pelo usuário: 12345
+[2025-04-16 18:15:46] [INFO] Cliente atual alterado para 'Tparts' pelo usuário: 12345
+[2025-04-16 18:21:14] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' adicionado por 12345 no grupo 12345
+[2025-04-16 18:21:14] [WARNING] Grupos 'all' ou 'admin' não encontrados durante sincronização de clientes
+[2025-04-17 10:05:06] [INFO] Sistema encerrado pelo usuário 12345
+[2025-04-17 10:05:09] [INFO] Sistema inicializado com sucesso
+[2025-04-17 10:05:14] [INFO] Login bem-sucedido: 12345
+[2025-04-17 10:05:14] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-17 10:06:58] [INFO] Usuário 12345 fez logout
+[2025-04-17 10:07:02] [INFO] Login bem-sucedido: admin
+[2025-04-17 10:07:02] [INFO] Usuário admin (admin) fez login
+[2025-04-17 10:11:03] [INFO] Sistema encerrado pelo usuário admin
