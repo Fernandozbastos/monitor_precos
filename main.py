@@ -333,23 +333,34 @@ def menu_administracao_sistema():
             input("\nPressione Enter para continuar...")
 
 def menu_gerenciar_dominios():
-    """Submenu para gerenciamento de domínios e seletores."""
+    """Submenu para gerenciamento de domínios, plataformas e seletores."""
     while True:
-        print("\nGERENCIAMENTO DE DOMÍNIOS E SELETORES")
+        print("\nGERENCIAMENTO DE DOMÍNIOS, PLATAFORMAS E SELETORES")
         print("1. Listar domínios e seletores")
         print("2. Remover domínio e seletor")
+        print("3. Listar plataformas e seletores")
+        print("4. Remover plataforma e seletor")
         print("0. Voltar ao menu anterior")
         
-        opcao = input("\nEscolha uma opção (0-2): ")
+        opcao = input("\nEscolha uma opção (0-4): ")
         
         if opcao == '1':
             listar_dominios_seletores()
+            input("\nPressione Enter para continuar...")
         elif opcao == '2':
             remover_dominio_seletor()
+            input("\nPressione Enter para continuar...")
+        elif opcao == '3':
+            listar_plataformas_seletores()
+            input("\nPressione Enter para continuar...")
+        elif opcao == '4':
+            remover_plataforma_seletor()
+            input("\nPressione Enter para continuar...")
         elif opcao == '0':
             return
         else:
             print("Opção inválida. Tente novamente.")
+            input("\nPressione Enter para continuar...")
 
 def alterar_senha_usuario():
     """Interface para o usuário alterar sua própria senha."""

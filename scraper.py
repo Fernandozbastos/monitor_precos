@@ -184,22 +184,45 @@ def registrar_preco(cliente, produto, concorrente, url, seletor_css=None, usuari
     if seletor_css is None:
         try:
             if os.path.isfile('urls_monitoradas.csv'):
-                df_urls = pd.read_csv('urls_monitoradas.csv')
+                df_urls = pd.read_csv(arquivo_urls)
                 url_match = df_urls[df_urls['url'] == url]
                 
                 if not url_match.empty:
                     seletor_css = url_match.iloc[0]['seletor_css']
                 else:
-                    # Se não encontrar a URL, tenta buscar pelo domínio
-                    dominio = extrair_dominio(url)
-                    from database import carregar_dominios_seletores
-                    dominios_seletores = carregar_dominios_seletores()
+                    # Se não encontrar a URL, tenta buscar pela plataforma
+                    plataforma = None
                     
-                    if dominio in dominios_seletores:
-                        seletor_css = dominios_seletores[dominio]
-                    else:
-                        print(f"Não foi encontrado um seletor CSS para a URL: {url}")
-                        return False
+                    # Busca em produtos_monitorados.csv se tiver a coluna 'plataforma'
+                    if os.path.isfile('produtos_monitorados.csv'):
+                        df_produtos = pd.read_csv('produtos_monitorados.csv')
+                        if 'plataforma' in df_produtos.columns:
+                            produto_match = df_produtos[(df_produtos['cliente'] == cliente) & 
+                                                     (df_produtos['produto'] == produto) &
+                                                     (df_produtos['url'] == url)]
+                            if not produto_match.empty and not pd.isnull(produto_match.iloc[0].get('plataforma', '')):
+                                plataforma = produto_match.iloc[0]['plataforma']
+                    
+                    # Se encontrou a plataforma, busca o seletor da plataforma
+                    if plataforma:
+                        from database import carregar_plataformas_seletores
+                        plataformas_seletores = carregar_plataformas_seletores()
+                        
+                        if plataforma in plataformas_seletores:
+                            seletor_css = plataformas_seletores[plataforma]
+                            print(f"Usando seletor da plataforma '{plataforma}': {seletor_css}")
+                    
+                    # Se não encontrou pela plataforma, tenta pelo domínio (método original)
+                    if not seletor_css:
+                        dominio = extrair_dominio(url)
+                        from database import carregar_dominios_seletores
+                        dominios_seletores = carregar_dominios_seletores()
+                        
+                        if dominio in dominios_seletores:
+                            seletor_css = dominios_seletores[dominio]
+                        else:
+                            print(f"Não foi encontrado um seletor CSS para a URL: {url}")
+                            return False
         except Exception as e:
             print(f"Erro ao buscar seletor CSS: {e}")
             return False

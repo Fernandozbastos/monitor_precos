@@ -14,6 +14,7 @@ from utils import depurar_logs
 
 # Constante para o arquivo de domínios e seletores
 DOMINIOS_SELETORES_FILE = 'dominios_seletores.json'
+PLATAFORMAS_SELETORES_FILE = 'plataformas_seletores.json'
 
 def adicionar_cliente_grupo_usuario_local(usuario, cliente, operador=None):
     """
@@ -810,3 +811,74 @@ def migrar_para_novo_formato():
         if not os.path.isfile(arquivo_urls):
             pd.DataFrame(columns=['url', 'dominio', 'seletor_css']).to_csv(arquivo_urls, index=False)
         return False
+
+def carregar_plataformas_seletores():
+    """
+    Carrega o dicionário de plataformas e seus seletores CSS do arquivo JSON.
+    
+    Returns:
+        dict: Dicionário com plataformas como chaves e seletores CSS como valores
+    """
+    if os.path.isfile(PLATAFORMAS_SELETORES_FILE):
+        try:
+            with open(PLATAFORMAS_SELETORES_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print(f"Erro ao carregar arquivo {PLATAFORMAS_SELETORES_FILE}. Criando novo.")
+    return {}
+
+def salvar_plataformas_seletores(plataformas_seletores):
+    """
+    Salva o dicionário de plataformas e seletores CSS no arquivo JSON.
+    
+    Args:
+        plataformas_seletores (dict): Dicionário com plataformas e seletores CSS
+    """
+    with open(PLATAFORMAS_SELETORES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(plataformas_seletores, f, ensure_ascii=False, indent=4)
+
+def listar_plataformas_seletores():
+    """
+    Lista todas as plataformas e seus seletores CSS salvos.
+    """
+    plataformas_seletores = carregar_plataformas_seletores()
+    
+    if not plataformas_seletores:
+        print("Não há plataformas e seletores salvos.")
+        return
+    
+    print("\nPlataformas e seletores cadastrados:")
+    for i, (plataforma, seletor) in enumerate(plataformas_seletores.items(), 1):
+        print(f"{i}. {plataforma}: {seletor}")
+
+def remover_plataforma_seletor():
+    """
+    Remove uma plataforma e seu seletor da base.
+    """
+    plataformas_seletores = carregar_plataformas_seletores()
+    
+    if not plataformas_seletores:
+        print("Não há plataformas e seletores salvos para remover.")
+        return
+    
+    print("\nPlataformas disponíveis para remoção:")
+    plataformas = list(plataformas_seletores.keys())
+    for i, plataforma in enumerate(plataformas, 1):
+        print(f"{i}. {plataforma}: {plataformas_seletores[plataforma]}")
+    
+    escolha = input("Digite o número da plataforma que deseja remover (ou 'cancelar'): ")
+    
+    if escolha.lower() == 'cancelar':
+        return
+    
+    try:
+        indice = int(escolha) - 1
+        if 0 <= indice < len(plataformas):
+            plataforma_a_remover = plataformas[indice]
+            del plataformas_seletores[plataforma_a_remover]
+            salvar_plataformas_seletores(plataformas_seletores)
+            print(f"Plataforma '{plataforma_a_remover}' removida com sucesso!")
+        else:
+            print("Opção inválida.")
+    except ValueError:
+        print("Entrada inválida. Digite um número ou 'cancelar'.")

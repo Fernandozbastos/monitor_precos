@@ -8,8 +8,9 @@ DOMINIOS_SELETORES_FILE = 'dominios_seletores.json'
 PRODUTOS_MONITORADOS_FILE = 'produtos_monitorados.csv'
 HISTORICO_PRECOS_FILE = 'historico_precos.csv'
 AGENDAMENTO_CONFIG_FILE = 'agendamento_config.json'
-USUARIOS_FILE = 'usuarios.json'  # Adicionado para o sistema de login
-LOG_FILE = 'monitor_precos.log'  # Arquivo de log
+USUARIOS_FILE = 'usuarios.json'
+PLATAFORMAS_SELETORES_FILE = 'plataformas_seletores.json'  # Nova constante
+LOG_FILE = 'monitor_precos.log'
 
 # Lista de user agents para requests
 USER_AGENTS = [
@@ -59,7 +60,8 @@ def verificar_arquivos_sistema():
     # Lista de arquivos para verificar
     arquivos_verificar = {
         DOMINIOS_SELETORES_FILE: '{}',   # Arquivo JSON vazio
-        AGENDAMENTO_CONFIG_FILE: '{}'    # Arquivo JSON vazio
+        AGENDAMENTO_CONFIG_FILE: '{}',   # Arquivo JSON vazio
+        'plataformas_seletores.json': '{}'  # Novo arquivo JSON vazio
     }
     
     # Verifica e cria os arquivos JSON se necessário
