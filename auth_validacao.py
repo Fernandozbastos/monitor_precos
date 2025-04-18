@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
-Módulo de validação e organização do arquivo de usuários
---------------------------------------------------------
+Módulo de validação e organização da estrutura de usuários no banco de dados
+---------------------------------------------------------------------------
 Complemento para o módulo de autenticação, garantindo a integridade
-e estrutura correta do arquivo usuarios.json.
+e estrutura correta dos dados de usuários no banco SQLite.
 """
 
-import os
-import json
 from utils import depurar_logs
+from database_config import criar_conexao
+from datetime import datetime
 
 # Estrutura padrão esperada para cada usuário
 USUARIO_PADRAO = {
@@ -24,190 +24,178 @@ USUARIO_PADRAO = {
     "permissoes": []
 }
 
-def validar_estrutura_usuarios(usuarios):
+def validar_estrutura_usuarios():
     """
-    Valida se o dicionário de usuários possui a estrutura correta.
-    
-    Args:
-        usuarios (dict): Dicionário com os usuários
-        
-    Returns:
-        tuple: (valido, usuarios_corrigidos) onde valido é um booleano indicando
-               se a estrutura está correta e usuarios_corrigidos é o dicionário
-               corrigido com a estrutura adequada
-    """
-    if not isinstance(usuarios, dict):
-        depurar_logs("Arquivo de usuários não é um dicionário válido", "ERROR")
-        return False, {}
-    
-    usuarios_corrigidos = {}
-    alteracoes = False
-    
-    for username, dados in usuarios.items():
-        if not isinstance(dados, dict):
-            depurar_logs(f"Dados inválidos para o usuário {username}", "WARNING")
-            # Criar uma estrutura básica para o usuário inválido
-            usuarios_corrigidos[username] = USUARIO_PADRAO.copy()
-            usuarios_corrigidos[username]["senha"] = "RESETAR_SENHA"
-            usuarios_corrigidos[username]["nome"] = f"Usuário {username}"
-            alteracoes = True
-            continue
-            
-        # Cria uma cópia para não modificar o original durante a iteração
-        usuario_corrigido = {}
-        
-        # Verifica campos obrigatórios
-        for campo, valor_padrao in USUARIO_PADRAO.items():
-            if campo not in dados:
-                usuario_corrigido[campo] = valor_padrao
-                alteracoes = True
-            else:
-                usuario_corrigido[campo] = dados[campo]
-        
-        # Verifica tipos de dados
-        if not isinstance(usuario_corrigido["senha"], str):
-            usuario_corrigido["senha"] = str(usuario_corrigido["senha"])
-            alteracoes = True
-            
-        if not isinstance(usuario_corrigido["nome"], str):
-            usuario_corrigido["nome"] = f"Usuário {username}"
-            alteracoes = True
-            
-        if usuario_corrigido["tipo"] not in ["admin", "usuario"]:
-            usuario_corrigido["tipo"] = "usuario"
-            alteracoes = True
-            
-        if not isinstance(usuario_corrigido["ativo"], bool):
-            usuario_corrigido["ativo"] = bool(usuario_corrigido["ativo"])
-            alteracoes = True
-            
-        if not isinstance(usuario_corrigido["permissoes"], list):
-            usuario_corrigido["permissoes"] = []
-            alteracoes = True
-            
-        # Mantém campos adicionais que possam existir
-        for campo in dados:
-            if campo not in USUARIO_PADRAO:
-                usuario_corrigido[campo] = dados[campo]
-        
-        usuarios_corrigidos[username] = usuario_corrigido
-    
-    return not alteracoes, usuarios_corrigidos
-
-def verificar_e_corrigir_arquivo(arquivo_usuarios='usuarios.json'):
-    """
-    Verifica se o arquivo de usuários existe, valida sua estrutura e corrige se necessário.
-    
-    Args:
-        arquivo_usuarios (str): Caminho para o arquivo de usuários
+    Valida se os registros de usuários no banco de dados possuem a estrutura correta.
     
     Returns:
-        bool: True se o arquivo está correto ou foi corrigido com sucesso, False caso contrário
+        tuple: (valido, correcoes) onde valido é um booleano indicando se a estrutura 
+               está correta e correcoes é o número de correções realizadas
     """
     try:
-        if not os.path.isfile(arquivo_usuarios):
-            # Arquivo não existe, será criado pelo módulo auth
+        conexao, cursor = criar_conexao()
+        
+        # Verificar se a tabela existe
+        cursor.execute('''
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='usuarios'
+        ''')
+        
+        if not cursor.fetchone():
+            depurar_logs("Tabela de usuários não existe no banco de dados", "ERROR")
+            conexao.close()
+            return False, 0
+        
+        # Verificar a estrutura da tabela
+        cursor.execute("PRAGMA table_info(usuarios)")
+        colunas = cursor.fetchall()
+        
+        colunas_existentes = [col['name'] for col in colunas]
+        colunas_necessarias = ['username', 'senha', 'nome', 'tipo', 'ativo', 'cliente_atual', 'data_criacao', 'ultimo_acesso']
+        
+        # Verificar se todas as colunas necessárias existem
+        colunas_faltantes = [col for col in colunas_necessarias if col not in colunas_existentes]
+        
+        if colunas_faltantes:
+            depurar_logs(f"Faltam colunas na tabela de usuários: {', '.join(colunas_faltantes)}", "ERROR")
+            conexao.close()
+            return False, 0
+        
+        # Obter todos os usuários para validação
+        cursor.execute("SELECT * FROM usuarios")
+        usuarios = cursor.fetchall()
+        
+        correcoes = 0
+        data_atual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Verificar e corrigir cada usuário
+        for usuario in usuarios:
+            alteracoes = False
+            
+            # Verificar tipo
+            if usuario['tipo'] not in ["admin", "usuario"]:
+                cursor.execute("UPDATE usuarios SET tipo = ? WHERE id = ?", ("usuario", usuario['id']))
+                alteracoes = True
+                correcoes += 1
+            
+            # Verificar ativo (deve ser 0 ou 1)
+            if usuario['ativo'] not in [0, 1]:
+                cursor.execute("UPDATE usuarios SET ativo = ? WHERE id = ?", (1, usuario['id']))
+                alteracoes = True
+                correcoes += 1
+            
+            # Verificar nome (não pode ser vazio)
+            if not usuario['nome']:
+                novo_nome = f"Usuário {usuario['username']}"
+                cursor.execute("UPDATE usuarios SET nome = ? WHERE id = ?", (novo_nome, usuario['id']))
+                alteracoes = True
+                correcoes += 1
+            
+            # Verificar data_criacao (não pode ser vazia)
+            if not usuario['data_criacao']:
+                cursor.execute("UPDATE usuarios SET data_criacao = ? WHERE id = ?", (data_atual, usuario['id']))
+                alteracoes = True
+                correcoes += 1
+            
+            if alteracoes:
+                depurar_logs(f"Estrutura do usuário {usuario['username']} corrigida", "INFO")
+        
+        conexao.commit()
+        conexao.close()
+        
+        if correcoes > 0:
+            depurar_logs(f"Total de {correcoes} correções realizadas na estrutura de usuários", "INFO")
+            return False, correcoes
+        
+        return True, 0
+        
+    except Exception as e:
+        depurar_logs(f"Erro ao validar estrutura de usuários: {e}", "ERROR")
+        return False, 0
+
+def verificar_e_corrigir_banco():
+    """
+    Verifica se a tabela de usuários existe e tem a estrutura correta.
+    
+    Returns:
+        bool: True se a tabela está correta ou foi corrigida com sucesso, False caso contrário
+    """
+    try:
+        conexao, cursor = criar_conexao()
+        
+        # Verificar se a tabela existe
+        cursor.execute('''
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='usuarios'
+        ''')
+        
+        if not cursor.fetchone():
+            depurar_logs("Tabela de usuários não existe, será criada pelo módulo database_config", "INFO")
+            conexao.close()
             return True
             
-        # Carrega o arquivo existente
-        with open(arquivo_usuarios, 'r', encoding='utf-8') as f:
-            try:
-                usuarios = json.load(f)
-            except json.JSONDecodeError:
-                depurar_logs(f"Arquivo {arquivo_usuarios} não é um JSON válido", "ERROR")
-                # Cria backup do arquivo corrompido
-                if os.path.getsize(arquivo_usuarios) > 0:
-                    import datetime
-                    backup_file = f"{arquivo_usuarios}.bak.{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-                    os.rename(arquivo_usuarios, backup_file)
-                    depurar_logs(f"Backup do arquivo corrompido criado: {backup_file}", "INFO")
-                return False
+        # Validar a estrutura dos usuários
+        valido, correcoes = validar_estrutura_usuarios()
         
-        # Valida e corrige a estrutura
-        valido, usuarios_corrigidos = validar_estrutura_usuarios(usuarios)
+        conexao.close()
         
-        if not valido:
-            depurar_logs("Estrutura do arquivo de usuários corrigida", "INFO")
-            # Salva o arquivo corrigido
-            with open(arquivo_usuarios, 'w', encoding='utf-8') as f:
-                json.dump(usuarios_corrigidos, f, ensure_ascii=False, indent=4)
-                
+        if not valido and correcoes > 0:
+            depurar_logs("Estrutura da tabela de usuários corrigida", "INFO")
+            return True
+        elif not valido and correcoes == 0:
+            depurar_logs("Não foi possível corrigir todos os problemas na tabela de usuários", "WARNING")
+            return False
+        
         return True
+        
     except Exception as e:
-        depurar_logs(f"Erro ao verificar/corrigir arquivo de usuários: {str(e)}", "ERROR")
+        depurar_logs(f"Erro ao verificar/corrigir tabela de usuários: {str(e)}", "ERROR")
         return False
 
-def organizar_usuarios_por_tipo(usuarios):
+def organizar_usuarios_por_tipo():
     """
-    Organiza o dicionário de usuários por tipo (admin primeiro, depois usuários)
-    
-    Args:
-        usuarios (dict): Dicionário com os usuários
-        
-    Returns:
-        dict: Dicionário organizado com admins primeiro, seguidos de usuários
-    """
-    # Separa admins e usuários regulares
-    admins = {k: v for k, v in usuarios.items() if v.get('tipo') == 'admin'}
-    regulares = {k: v for k, v in usuarios.items() if v.get('tipo') != 'admin'}
-    
-    # Ordena cada grupo por nome de usuário
-    admins_ordenados = dict(sorted(admins.items()))
-    regulares_ordenados = dict(sorted(regulares.items()))
-    
-    # Combina os dois grupos
-    return {**admins_ordenados, **regulares_ordenados}
-
-def atualizar_arquivo_usuarios():
-    """
-    Atualiza o arquivo de usuários organizando-o por tipo e garantindo sua estrutura.
+    Verifica se os usuários estão organizados no banco de dados.
+    Não há necessidade de reordenar fisicamente, mas adiciona um índice para consultas.
     
     Returns:
-        bool: True se a atualização foi bem-sucedida, False caso contrário
+        bool: True se a operação foi bem-sucedida, False caso contrário
     """
     try:
-        arquivo_usuarios = 'usuarios.json'
+        conexao, cursor = criar_conexao()
         
-        # Verifica se o arquivo existe
-        if not os.path.isfile(arquivo_usuarios):
-            return True  # Será criado pelo módulo auth
+        # Verificar se já existe um índice para tipo de usuário
+        cursor.execute('''
+        SELECT name FROM sqlite_master 
+        WHERE type='index' AND name='idx_usuarios_tipo'
+        ''')
+        
+        if not cursor.fetchone():
+            # Criar índice para tipo
+            cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_usuarios_tipo ON usuarios(tipo)
+            ''')
             
-        # Carrega o arquivo
-        with open(arquivo_usuarios, 'r', encoding='utf-8') as f:
-            try:
-                usuarios = json.load(f)
-            except json.JSONDecodeError:
-                depurar_logs(f"Arquivo {arquivo_usuarios} não é um JSON válido", "ERROR")
-                return False
+            depurar_logs("Índice criado para tipo de usuário", "INFO")
         
-        # Valida e corrige a estrutura
-        _, usuarios_corrigidos = validar_estrutura_usuarios(usuarios)
+        conexao.commit()
+        conexao.close()
         
-        # Organiza por tipo
-        usuarios_organizados = organizar_usuarios_por_tipo(usuarios_corrigidos)
-        
-        # Salva o arquivo organizado
-        with open(arquivo_usuarios, 'w', encoding='utf-8') as f:
-            json.dump(usuarios_organizados, f, ensure_ascii=False, indent=4)
-            
-        depurar_logs("Arquivo de usuários organizado com sucesso", "INFO")
         return True
     except Exception as e:
-        depurar_logs(f"Erro ao organizar arquivo de usuários: {str(e)}", "ERROR")
+        depurar_logs(f"Erro ao organizar usuários por tipo: {str(e)}", "ERROR")
         return False
 
-# Função para integrar com o módulo auth original
 def verificar_e_organizar_usuarios():
     """
-    Função principal para verificar, validar e organizar o arquivo de usuários.
-    Deve ser chamada pelo módulo auth antes de carregar os usuários.
+    Função principal para verificar, validar e organizar os usuários no banco de dados.
+    Deve ser chamada pelo módulo auth_bd antes de trabalhar com os usuários.
     
     Returns:
-        bool: True se o arquivo está pronto para uso, False caso contrário
+        bool: True se os dados estão prontos para uso, False caso contrário
     """
-    # Verifica e corrige a estrutura do arquivo
-    if not verificar_e_corrigir_arquivo():
+    # Verifica e corrige a estrutura da tabela
+    if not verificar_e_corrigir_banco():
         return False
         
-    # Organiza o arquivo por tipo de usuário
-    return atualizar_arquivo_usuarios()
+    # Organiza os usuários (cria índices)
+    return organizar_usuarios_por_tipo()

@@ -242,3 +242,40 @@ def limpar_tela():
         os.system('cls')
     else:  # Para Linux/Mac
         os.system('clear')
+
+def inicializar_sistema():
+    """
+    Inicializa o sistema, verificando se deve usar o banco de dados SQLite ou arquivos CSV.
+    
+    Returns:
+        bool: True se a inicialização foi bem-sucedida, False caso contrário
+    """
+    # Verificar se está no modo de banco de dados ou CSV
+    modo_bd = os.path.isfile('usar_bd.flag') or os.path.isfile('monitor_precos.db')
+    
+    if modo_bd:
+        try:
+            from database_config import inicializar_banco_dados
+            sucesso = inicializar_banco_dados()
+            if sucesso:
+                print("Sistema inicializado com banco de dados SQLite.")
+                
+                # Criar flag para indicar que está usando banco de dados
+                with open('usar_bd.flag', 'w') as f:
+                    f.write('1')
+                
+                return True
+            else:
+                print("Falha ao inicializar banco de dados. Tentando modo de arquivos...")
+                modo_bd = False
+        except Exception as e:
+            print(f"Erro ao inicializar banco de dados: {e}")
+            print("Usando modo de arquivos como fallback...")
+            modo_bd = False
+    
+    if not modo_bd:
+        # Usar o modo de arquivos CSV (código original)
+        status = verificar_arquivos_sistema()
+        for arquivo, state in status.items():
+            print(f"- {arquivo}: {state}")
+        return True

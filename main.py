@@ -6,43 +6,43 @@ Sistema de Monitoramento de Preços
 ----------------------------------
 Este programa monitora preços de produtos em sites de concorrentes
 e registra o histórico de variações para análise competitiva.
+Versão para banco de dados SQLite.
 """
 
 import os
 import sys
 import time
-from utils import verificar_arquivos_sistema, depurar_logs, criar_backup, limpar_tela
-from database import (
+import traceback
+from utils import depurar_logs, criar_backup, limpar_tela
+from database_bd import (
     adicionar_produto,
     remover_produto,
     listar_dominios_seletores,
     remover_dominio_seletor,
+    listar_plataformas_seletores,
+    remover_plataforma_seletor,
     listar_clientes,
-    visualizar_historico
+    visualizar_historico,
+    adicionar_cliente
 )
 from scheduler import (
     monitorar_todos_produtos,
     configurar_agendamento,
     executar_agendador,
     restaurar_agendamento,
-    carregar_configuracao_agendamento
+    carregar_configuracao_agendamento,
+    salvar_configuracao_agendamento
 )
-from auth import (
+from auth_bd import (
     realizar_login,
-    verificar_arquivo_usuarios,
-    adicionar_usuario,
     alterar_senha,
-    desativar_usuario,
-    listar_usuarios,
     alterar_cliente_atual,
     obter_cliente_atual
 )
-from grupos import (
-    verificar_arquivo_grupos,
+from grupos_bd import (
     obter_grupos_usuario,
     obter_clientes_usuario,
-    adicionar_cliente_grupo_usuario,
-    adicionar_cliente_a_todos_grupos_admin
+    usuario_pode_acessar_cliente
 )
 
 from admin import menu_administracao
@@ -108,11 +108,6 @@ def menu_gerenciar_produtos():
         if opcao == '1':
             # Adiciona produto para o cliente atual
             adicionar_produto(cliente=cliente_atual, usuario_atual=usuario_logado)
-            
-            # Se o usuário não for admin, adiciona o cliente ao grupo do usuário
-            if tipo_usuario != 'admin':
-                adicionar_cliente_grupo_usuario(usuario_logado, cliente_atual, usuario_logado)
-                
             input("\nPressione Enter para continuar...")
             
         elif opcao == '2':
@@ -139,7 +134,7 @@ def selecionar_cliente():
     Returns:
         bool: True se um cliente foi selecionado com sucesso, False caso contrário
     """
-    global cliente_atual
+    global cliente_atual, usuario_logado
     
     limpar_tela()
     exibir_cabecalho()
@@ -147,35 +142,8 @@ def selecionar_cliente():
     print("\nSELEÇÃO DE CLIENTE")
     print("-" * 40)
     
-    # Lista de todos os clientes no sistema
-    todos_clientes = []
-    
-    try:
-        import pandas as pd
-        
-        # Primeiro busca no arquivo de clientes
-        if os.path.isfile('clientes.csv'):
-            df_clientes = pd.read_csv('clientes.csv')
-            todos_clientes.extend(df_clientes['cliente'].unique().tolist())
-        
-        # Complementa com clientes do arquivo de produtos (caso falte algum)
-        if os.path.isfile('produtos_monitorados.csv'):
-            df_produtos = pd.read_csv('produtos_monitorados.csv')
-            todos_clientes.extend(df_produtos['cliente'].unique().tolist())
-        
-        # Remove duplicatas
-        todos_clientes = list(set(todos_clientes))
-    except Exception as e:
-        print(f"Erro ao carregar clientes: {str(e)}")
-    
-    # Determina quais clientes o usuário pode acessar
-    if tipo_usuario == 'admin' or "admin" in obter_grupos_usuario(usuario_logado):
-        # Administradores podem ver todos os clientes
-        clientes_disponiveis = todos_clientes
-    else:
-        # Usuários comuns veem apenas os clientes de seus grupos
-        clientes_autorizados = obter_clientes_usuario(usuario_logado)
-        clientes_disponiveis = [c for c in todos_clientes if c in clientes_autorizados]
+    # Lista de clientes que o usuário pode acessar
+    clientes_disponiveis = listar_clientes(usuario_logado)
     
     # Adicionar opção para criar novo cliente
     tem_opcoes = False
@@ -220,17 +188,7 @@ def selecionar_cliente():
                 input("\nPressione Enter para tentar novamente...")
                 return selecionar_cliente()
             
-            # Verifica se o cliente já existe no sistema
-            if novo_cliente in todos_clientes:
-                # Se o cliente já existe, mas o usuário não tem acesso
-                if novo_cliente not in clientes_disponiveis and tipo_usuario != 'admin' and "admin" not in obter_grupos_usuario(usuario_logado):
-                    print(f"\nO cliente '{novo_cliente}' já existe, mas você não tem acesso a ele.")
-                    print("Apenas administradores podem adicionar acesso a clientes existentes.")
-                    input("\nPressione Enter para tentar novamente...")
-                    return selecionar_cliente()
-            
             # Adiciona o cliente ao sistema
-            from database import adicionar_cliente
             sucesso = adicionar_cliente(novo_cliente, usuario_atual=usuario_logado)
             
             if sucesso:
@@ -296,7 +254,6 @@ def menu_administracao_sistema():
             # Apenas admin
             info_agendamento, sucesso = configurar_agendamento()
             if sucesso and info_agendamento:
-                from scheduler import salvar_configuracao_agendamento
                 salvar_configuracao_agendamento(info_agendamento)
             input("\nPressione Enter para continuar...")
             
@@ -314,11 +271,32 @@ def menu_administracao_sistema():
         elif opcao == '5' and tipo_usuario == 'admin':
             # Apenas admin
             print("\nCriando backup do sistema...")
-            resultado = criar_backup()
-            if resultado:
-                print("Backup criado com sucesso!")
-            else:
-                print("Houve um erro ao criar o backup.")
+            
+            # Também cria backup do banco de dados
+            try:
+                import shutil
+                from datetime import datetime
+                
+                data_backup = datetime.now().strftime('%Y%m%d_%H%M%S')
+                
+                # Garantir que a pasta de backups existe
+                if not os.path.exists('backups'):
+                    os.makedirs('backups')
+                
+                # Backup do banco de dados
+                shutil.copy2('monitor_precos.db', f"backups/monitor_precos.db.{data_backup}.bak")
+                print(f"Backup do banco de dados criado: backups/monitor_precos.db.{data_backup}.bak")
+                
+                # Backup dos demais arquivos
+                resultado = criar_backup()
+                
+                if resultado:
+                    print("Backup completo criado com sucesso!")
+                else:
+                    print("Houve um erro ao criar o backup dos arquivos.")
+            except Exception as e:
+                print(f"Erro ao criar backup: {e}")
+                
             input("\nPressione Enter para continuar...")
             
         elif opcao == '6' and tipo_usuario == 'admin':
@@ -379,78 +357,48 @@ def alterar_senha_usuario():
     else:
         print("Falha ao alterar senha. Verifique se a senha atual está correta.")
 
-def iniciar_sistema():
+def inicializar_banco_dados():
     """
-    Inicializa o sistema, verificando arquivos necessários,
-    carregando configurações salvas e realizando migração se necessário.
+    Inicializa o banco de dados SQLite.
+    
+    Returns:
+        bool: True se a inicialização foi bem-sucedida, False caso contrário
     """
-    print("Inicializando sistema...")
-    
-    # Verifica se os arquivos do sistema existem e cria se necessário
-    status_arquivos = verificar_arquivos_sistema()
-    for arquivo, status in status_arquivos.items():
-        print(f"- {arquivo}: {status}")
-    
-    # Garante que o arquivo de usuários existe
-    verificar_arquivo_usuarios()
-    print("- usuarios.json: Verificado")
-    
-    # Garante que o arquivo de grupos existe
-    verificar_arquivo_grupos()
-    print("- grupos.json: Verificado")
-    
-    # Verifica se é necessário migrar para o novo formato de dados
-    need_migration = False
     try:
-        import pandas as pd
-        if os.path.isfile('produtos_monitorados.csv'):
-            # Verifica se o arquivo de produtos tem a coluna 'seletor_css'
-            df = pd.read_csv('produtos_monitorados.csv')
-            if 'seletor_css' in df.columns:
-                need_migration = True
-                
-        # Se existir produtos_monitorados.csv mas não urls_monitoradas.csv, pode ser necessário migrar
-        if os.path.isfile('produtos_monitorados.csv') and not os.path.isfile('urls_monitoradas.csv'):
-            need_migration = True
-            
-        if need_migration:
-            print("\nDetectado formato antigo de dados ou falta de arquivos necessários.")
-            print("Iniciando migração para o novo formato...")
-            from database import migrar_para_novo_formato
-            success = migrar_para_novo_formato()
-            
-            if success:
-                print("Migração concluída com sucesso!")
-            else:
-                print("Houve problemas durante a migração. Algumas funcionalidades podem não funcionar corretamente.")
-    except Exception as e:
-        print(f"Erro ao verificar necessidade de migração: {e}")
-        print("Criando estrutura básica para evitar erros futuros...")
-        try:
-            # Garantir que o arquivo de URLs existe mesmo que vazio
-            if not os.path.isfile('urls_monitoradas.csv'):
-                import pandas as pd
-                pd.DataFrame(columns=['url', 'dominio', 'seletor_css']).to_csv('urls_monitoradas.csv', index=False)
-        except Exception as e2:
-            print(f"Erro ao criar arquivo de URLs: {e2}")
-    
-    # Tenta restaurar agendamento anterior
-    config = carregar_configuracao_agendamento()
-    if config:
-        print("\nEncontrada configuração de agendamento anterior:")
-        tipo = config.get("tipo", "desconhecido")
-        if tipo == "diario":
-            print(f"- Monitoramento diário às {config.get('horario')}")
-        elif tipo == "semanal":
-            print(f"- Monitoramento semanal às {config.get('horario')} de {config.get('dia')}")
-        elif tipo == "mensal":
-            print(f"- Monitoramento mensal no dia {config.get('dia')} às {config.get('horario')}")
+        from database_config import inicializar_banco_dados
         
-        restaurar = input("Deseja restaurar este agendamento? (s/n): ")
-        if restaurar.lower() == 's':
-            restaurar_agendamento()
-    
-    depurar_logs("Sistema inicializado com sucesso")
+        print("Inicializando banco de dados SQLite...")
+        sucesso = inicializar_banco_dados()
+        
+        if sucesso:
+            print("Banco de dados inicializado com sucesso!")
+            
+            # Verificar se é necessário migrar dados de arquivos CSV
+            if os.path.isfile('produtos_monitorados.csv') and not os.path.isfile('migrado_para_bd.flag'):
+                print("\nArquivos CSV encontrados. Deseja migrar os dados para o banco de dados? (s/n): ")
+                resposta = input().lower()
+                
+                if resposta == 's':
+                    from database_config import migrar_dados_csv_para_sqlite
+                    
+                    print("Iniciando migração de dados...")
+                    sucesso_migracao = migrar_dados_csv_para_sqlite()
+                    
+                    if sucesso_migracao:
+                        print("Migração concluída com sucesso!")
+                        # Criar flag para marcar que a migração foi realizada
+                        with open('migrado_para_bd.flag', 'w') as f:
+                            f.write('1')
+                    else:
+                        print("Houve problemas durante a migração. Verifique os logs.")
+        else:
+            print("Falha ao inicializar banco de dados.")
+            
+        return sucesso
+        
+    except Exception as e:
+        print(f"Erro ao inicializar banco de dados: {str(e)}")
+        return False
 
 def fazer_login():
     """
@@ -461,20 +409,25 @@ def fazer_login():
     """
     global usuario_logado, tipo_usuario, cliente_atual
     
-    autenticado, username, tipo, ultimo_cliente = realizar_login()
-    
-    if autenticado:
-        usuario_logado = username
-        tipo_usuario = tipo
-        cliente_atual = ultimo_cliente
-        depurar_logs(f"Usuário {username} ({tipo}) fez login", "INFO")
+    try:
+        autenticado, username, tipo, ultimo_cliente = realizar_login()
         
-        # Se tiver um cliente anterior, usa-o como cliente atual
-        if cliente_atual:
-            print(f"Cliente '{cliente_atual}' selecionado automaticamente.")
-        
-        return True
-    else:
+        if autenticado:
+            usuario_logado = username
+            tipo_usuario = tipo
+            cliente_atual = ultimo_cliente
+            depurar_logs(f"Usuário {username} ({tipo}) fez login", "INFO")
+            
+            # Se tiver um cliente anterior, usa-o como cliente atual
+            if cliente_atual:
+                print(f"Cliente '{cliente_atual}' selecionado automaticamente.")
+            
+            return True
+        else:
+            return False
+            
+    except Exception as e:
+        print(f"Erro ao realizar login: {e}")
         return False
 
 def fazer_logout():
@@ -497,14 +450,17 @@ def menu_principal():
     """
     global usuario_logado, tipo_usuario, cliente_atual
     
-    # Inicializa o sistema primeiro
-    iniciar_sistema()
+    # Inicializar o banco de dados
+    if not inicializar_banco_dados():
+        print("Falha ao inicializar banco de dados. O programa será encerrado.")
+        sys.exit(1)
     
     # Solicita login antes de mostrar o menu principal
     if not fazer_login():
         print("\nNão foi possível realizar o login. O programa será encerrado.")
         sys.exit(1)
     
+    # Loop principal do menu
     while True:
         try:
             # Limpa a tela 
@@ -529,7 +485,10 @@ def menu_principal():
                 input("\nPressione Enter para continuar...")
                 
             elif opcao == 'L':
-                if fazer_logout():
+                # Logout
+                logout_sucesso = fazer_logout()
+                
+                if logout_sucesso:
                     # Após logout, solicita novo login
                     if not fazer_login():
                         print("\nNão foi possível realizar o login. O programa será encerrado.")

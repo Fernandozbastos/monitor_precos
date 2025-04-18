@@ -5,17 +5,18 @@
 Módulo de administração para o Sistema de Monitoramento de Preços
 ----------------------------------------------------------------
 Fornece funcionalidades exclusivas para usuários administradores.
+Versão para banco de dados SQLite.
 """
 
 import os
 from utils import depurar_logs, limpar_tela
-from auth import (
+from auth_bd import (
     listar_usuarios,
     adicionar_usuario,
     desativar_usuario,
     alterar_senha
 )
-from grupos import (
+from grupos_bd import (
     listar_grupos,
     criar_grupo,
     remover_grupo,
@@ -25,7 +26,9 @@ from grupos import (
     remover_usuario_grupo,
     sincronizar_clientes
 )
-from database import listar_clientes
+from database_bd import listar_clientes
+from database_config import criar_conexao
+from datetime import datetime, timedelta
 
 def exibir_cabecalho_admin():
     """Exibe o cabeçalho da área de administração."""
@@ -168,10 +171,24 @@ def menu_gerenciar_usuarios(usuario_admin):
                     confirma_senha = input("Confirme a nova senha: ")
                     
                     if nova_senha == confirma_senha:
-                        # Implementar a funcionalidade de alteração de senha administrativa
-                        # Esta funcionalidade precisaria ser adicionada ao módulo de autenticação
-                        print("\nFuncionalidade em implementação.")
-                        depurar_logs(f"Tentativa de alteração de senha administrativa por {usuario_admin}", "INFO")
+                        # Implementar a alteração de senha administrativa
+                        try:
+                            conexao, cursor = criar_conexao()
+                            
+                            from auth_bd import criar_hash_senha
+                            senha_hash = criar_hash_senha(nova_senha)
+                            
+                            cursor.execute("UPDATE usuarios SET senha = ? WHERE username = ?", 
+                                        (senha_hash, usuario_escolhido))
+                            
+                            conexao.commit()
+                            conexao.close()
+                            
+                            print(f"\nSenha do usuário '{usuario_escolhido}' alterada com sucesso!")
+                            depurar_logs(f"Senha do usuário '{usuario_escolhido}' alterada por {usuario_admin}", "INFO")
+                        except Exception as e:
+                            print(f"\nErro ao alterar senha: {e}")
+                            depurar_logs(f"Erro ao alterar senha de {usuario_escolhido}: {e}", "ERROR")
                     else:
                         print("\nAs senhas não coincidem!")
                 else:
@@ -366,22 +383,27 @@ def menu_gerenciar_grupos(usuario_admin):
             # Sincroniza o grupo "all" com todos os clientes atuais
             print("\nSINCRONIZANDO GRUPO 'TODOS'...")
             
-            # Obtém a lista completa de clientes
+            # Obtém a lista completa de clientes do banco de dados
             todos_clientes = []
+            
             try:
-                import pandas as pd
-                if os.path.isfile('produtos_monitorados.csv'):
-                    df_produtos = pd.read_csv('produtos_monitorados.csv')
-                    todos_clientes = df_produtos['cliente'].unique().tolist()
+                conexao, cursor = criar_conexao()
+                
+                cursor.execute("SELECT nome FROM clientes")
+                clientes = cursor.fetchall()
+                
+                conexao.close()
+                
+                todos_clientes = [cliente['nome'] for cliente in clientes]
+                
+                resultado = sincronizar_clientes(todos_clientes)
+                
+                if resultado:
+                    print(f"Grupo 'Todos' sincronizado com sucesso! ({len(todos_clientes)} clientes)")
+                else:
+                    print("Falha ao sincronizar grupo 'Todos'.")
             except Exception as e:
-                print(f"Erro ao ler clientes: {str(e)}")
-            
-            resultado = sincronizar_clientes(todos_clientes)
-            
-            if resultado:
-                print(f"Grupo 'Todos' sincronizado com sucesso! ({len(todos_clientes)} clientes)")
-            else:
-                print("Falha ao sincronizar grupo 'Todos'.")
+                print(f"Erro ao obter clientes: {str(e)}")
             
             input("\nPressione Enter para continuar...")
             
@@ -435,51 +457,51 @@ def gerenciar_clientes_grupo(id_grupo, usuario_admin):
             # Adiciona um cliente ao grupo
             print("\nADICIONAR CLIENTE AO GRUPO")
             
-            # Obtém lista completa de clientes do sistema
+            # Obtém lista completa de clientes do banco de dados
             try:
-                import pandas as pd
-                if os.path.isfile('produtos_monitorados.csv'):
-                    df_produtos = pd.read_csv('produtos_monitorados.csv')
-                    todos_clientes = df_produtos['cliente'].unique().tolist()
+                conexao, cursor = criar_conexao()
+                
+                cursor.execute("SELECT nome FROM clientes")
+                todos_clientes = [row['nome'] for row in cursor.fetchall()]
+                
+                conexao.close()
+                
+                # Filtra para mostrar apenas clientes que não estão no grupo
+                clientes_disponiveis = [c for c in todos_clientes if c not in clientes_grupo]
+                
+                if not clientes_disponiveis:
+                    print("Todos os clientes já estão associados a este grupo.")
+                    input("\nPressione Enter para continuar...")
+                    continue
+                
+                print("\nClientes disponíveis:")
+                for i, cliente in enumerate(clientes_disponiveis, 1):
+                    print(f"{i}. {cliente}")
+                
+                try:
+                    escolha = int(input("\nDigite o número do cliente que deseja adicionar (0 para cancelar): "))
                     
-                    # Filtra para mostrar apenas clientes que não estão no grupo
-                    clientes_disponiveis = [c for c in todos_clientes if c not in clientes_grupo]
-                    
-                    if not clientes_disponiveis:
-                        print("Todos os clientes já estão associados a este grupo.")
-                        input("\nPressione Enter para continuar...")
+                    if escolha == 0:
                         continue
-                    
-                    print("\nClientes disponíveis:")
-                    for i, cliente in enumerate(clientes_disponiveis, 1):
-                        print(f"{i}. {cliente}")
-                    
-                    try:
-                        escolha = int(input("\nDigite o número do cliente que deseja adicionar (0 para cancelar): "))
                         
-                        if escolha == 0:
-                            continue
-                            
-                        if 1 <= escolha <= len(clientes_disponiveis):
-                            cliente_escolhido = clientes_disponiveis[escolha-1]
-                            
-                            resultado = adicionar_cliente_grupo(id_grupo, cliente_escolhido, usuario_admin)
-                            
-                            if resultado:
-                                print(f"\nCliente '{cliente_escolhido}' adicionado ao grupo com sucesso!")
-                                # Atualiza os dados do grupo
-                                grupos = listar_grupos()
-                                clientes_grupo = grupos[id_grupo]['clientes']
-                            else:
-                                print("\nFalha ao adicionar cliente ao grupo.")
+                    if 1 <= escolha <= len(clientes_disponiveis):
+                        cliente_escolhido = clientes_disponiveis[escolha-1]
+                        
+                        resultado = adicionar_cliente_grupo(id_grupo, cliente_escolhido, usuario_admin)
+                        
+                        if resultado:
+                            print(f"\nCliente '{cliente_escolhido}' adicionado ao grupo com sucesso!")
+                            # Atualiza os dados do grupo
+                            grupos = listar_grupos()
+                            clientes_grupo = grupos[id_grupo]['clientes']
                         else:
-                            print("\nOpção inválida.")
-                    except ValueError:
-                        print("\nEntrada inválida. Digite um número.")
-                else:
-                    print("Nenhum cliente cadastrado no sistema.")
+                            print("\nFalha ao adicionar cliente ao grupo.")
+                    else:
+                        print("\nOpção inválida.")
+                except ValueError:
+                    print("\nEntrada inválida. Digite um número.")
             except Exception as e:
-                print(f"Erro ao processar clientes: {str(e)}")
+                print(f"Erro ao obter clientes: {str(e)}")
             
             input("\nPressione Enter para continuar...")
             
@@ -550,8 +572,21 @@ def gerenciar_usuarios_grupo(id_grupo, usuario_admin):
         print(f"\nGERENCIAR USUÁRIOS DO GRUPO: {nome_grupo} ({id_grupo})")
         print("-" * 60)
         
-        # Mostra os usuários atuais do grupo
-        usuarios_grupo = grupos[id_grupo]['usuarios']
+        # Buscar os usuários atuais diretamente do banco de dados
+        conexao, cursor = criar_conexao()
+        
+        # Buscar usuários do grupo
+        cursor.execute('''
+        SELECT u.username, u.nome
+        FROM usuarios u
+        JOIN usuarios_grupos ug ON u.id = ug.id_usuario
+        JOIN grupos g ON ug.id_grupo = g.id
+        WHERE g.id_grupo = ?
+        ORDER BY u.username
+        ''', (id_grupo,))
+        
+        usuarios_grupo = [row['username'] for row in cursor.fetchall()]
+        conexao.close()
         
         print("\nUsuários atuais do grupo:")
         if usuarios_grupo:
@@ -571,7 +606,7 @@ def gerenciar_usuarios_grupo(id_grupo, usuario_admin):
             # Adiciona um usuário ao grupo
             print("\nADICIONAR USUÁRIO AO GRUPO")
             
-            # Obtém lista completa de usuários do sistema
+            # Obter lista completa de usuários do sistema
             lista_usuarios = listar_usuarios(True)  # Inclui inativos
             
             # Filtra para mostrar apenas usuários que não estão no grupo e estão ativos
@@ -602,9 +637,6 @@ def gerenciar_usuarios_grupo(id_grupo, usuario_admin):
                     
                     if resultado:
                         print(f"\nUsuário '{usuario_escolhido}' adicionado ao grupo com sucesso!")
-                        # Atualiza os dados do grupo
-                        grupos = listar_grupos()
-                        usuarios_grupo = grupos[id_grupo]['usuarios']
                     else:
                         print("\nFalha ao adicionar usuário ao grupo.")
                 else:
@@ -646,9 +678,6 @@ def gerenciar_usuarios_grupo(id_grupo, usuario_admin):
                     
                     if resultado:
                         print(f"\nUsuário '{usuario_escolhido}' removido do grupo com sucesso!")
-                        # Atualiza os dados do grupo
-                        grupos = listar_grupos()
-                        usuarios_grupo = grupos[id_grupo]['usuarios']
                     else:
                         print("\nFalha ao remover usuário do grupo.")
                 else:
@@ -727,10 +756,11 @@ def relatorio_atividade_sistema():
                     
                     if data_log >= data_corte:
                         logs_filtrados.append(linha)
-            except:
+            except Exception as e:
+                depurar_logs(f"Erro ao processar linha de log: {e}", "WARNING")
                 continue
         
-        # Análise dos logs
+# Análise dos logs
         total_logs = len(logs_filtrados)
         logs_por_nivel = {"INFO": 0, "WARNING": 0, "ERROR": 0, "DEBUG": 0}
         acoes_login = []
@@ -811,12 +841,25 @@ def menu_administracao(usuario_admin):
         elif opcao == '4':
             from utils import criar_backup
             print("\nCriando backup completo do sistema...")
-            resultado = criar_backup()
             
-            if resultado:
-                print("Backup criado com sucesso!")
-            else:
-                print("Houve um erro ao criar o backup.")
+            # Criar backup do banco de dados
+            try:
+                import shutil
+                from datetime import datetime
+                
+                data_backup = datetime.now().strftime('%Y%m%d_%H%M%S')
+                shutil.copy2('monitor_precos.db', f"backups/monitor_precos.db.{data_backup}.bak")
+                print(f"Backup do banco de dados criado: backups/monitor_precos.db.{data_backup}.bak")
+                
+                # Também cria backup dos arquivos importantes
+                resultado = criar_backup()
+                
+                if resultado:
+                    print("Backup completo criado com sucesso!")
+                else:
+                    print("Houve um erro ao criar o backup dos arquivos.")
+            except Exception as e:
+                print(f"Erro ao criar backup do banco de dados: {e}")
                 
             input("\nPressione Enter para continuar...")
             

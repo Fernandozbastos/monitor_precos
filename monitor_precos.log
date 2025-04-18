@@ -245,3 +245,75 @@
 [2025-04-17 10:37:27] [INFO] Usuário usuario (usuario) fez login
 [2025-04-17 10:37:45] [ERROR] Erro inesperado: '[0] not found in axis'
 [2025-04-17 10:44:58] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-17 11:11:49] [INFO] Login bem-sucedido: admin
+[2025-04-17 11:11:49] [INFO] Usuário admin (admin) fez login
+[2025-04-17 11:12:34] [WARNING] Tentativa de login falhou: usuario
+[2025-04-17 11:12:37] [INFO] Login bem-sucedido: admin
+[2025-04-17 11:12:37] [INFO] Usuário admin (admin) fez login
+[2025-04-17 11:16:19] [WARNING] Tentativa de login falhou: admin
+[2025-04-17 11:16:23] [WARNING] Tentativa de login falhou: admin
+[2025-04-17 11:16:27] [INFO] Login bem-sucedido: usuario
+[2025-04-17 11:16:27] [INFO] Usuário usuario (usuario) fez login
+[2025-04-17 11:19:20] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-17 11:19:27] [WARNING] Tentativa de login falhou: admin
+[2025-04-17 11:19:31] [INFO] Login bem-sucedido: admin
+[2025-04-17 11:19:31] [INFO] Usuário admin (admin) fez login
+[2025-04-17 11:19:53] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-17 11:20:01] [INFO] Login bem-sucedido: 12345
+[2025-04-17 11:20:01] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-17 11:25:40] [INFO] Sistema encerrado pelo usuário 12345
+[2025-04-17 11:25:46] [INFO] Login bem-sucedido: 12345
+[2025-04-17 11:25:46] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-17 11:26:14] [INFO] Cliente 'Fernando Teste' adicionado aos grupos de administração
+[2025-04-17 11:26:14] [INFO] Cliente Fernando Teste adicionado ao grupo do usuário 12345
+[2025-04-17 11:26:14] [INFO] Cliente 'Fernando Teste' adicionado por 12345
+[2025-04-17 11:26:14] [INFO] Cliente atual alterado para 'Fernando Teste' pelo usuário: 12345
+[2025-04-17 21:19:53] [INFO] Sistema encerrado pelo usuário 12345
+[2025-04-17 21:22:27] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-17 21:22:27] [INFO] Banco de dados contém 5 clientes e 7 produtos
+[2025-04-17 21:22:35] [INFO] Login bem-sucedido: 12345
+[2025-04-17 21:22:35] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-17 21:26:10] [INFO] Cliente 'Tparts' adicionado aos grupos de administração
+[2025-04-17 21:26:10] [INFO] Cliente 'Tparts' adicionado aos grupos de administração
+[2025-04-17 21:26:17] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' adicionado por 12345 no grupo 12345
+[2025-04-17 21:28:59] [ERROR] Erro inesperado: name 'usuario_atual' is not defined
+[2025-04-17 21:30:18] [INFO] Sistema encerrado pelo usuário 12345
+[2025-04-17 21:30:21] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-17 21:30:21] [INFO] Banco de dados contém 5 clientes e 8 produtos
+[2025-04-17 21:30:24] [INFO] Login bem-sucedido: 12345
+[2025-04-17 21:30:24] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-17 21:31:01] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' do grupo 12345 removido por 12345
+[2025-04-17 21:31:04] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' do grupo 12345 removido por 12345
+[2025-04-17 21:31:05] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' do grupo 12345 removido por 12345
+[2025-04-17 21:31:07] [INFO] Produto 'Lanterna L200 2008 a 2016' do cliente 'Tparts' do grupo 12345 removido por 12345
+[2025-04-17 21:31:16] [INFO] Usuário 12345 fez logout
+[2025-04-17 21:31:20] [WARNING] Tentativa de login falhou: admin
+[2025-04-17 21:31:28] [INFO] Login bem-sucedido: admin
+[2025-04-17 21:31:28] [INFO] Usuário admin (admin) fez login
+[2025-04-17 21:33:31] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-17 21:33:33] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-17 21:33:33] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-17 21:33:36] [INFO] Login bem-sucedido: admin
+[2025-04-17 21:33:36] [INFO] Usuário admin (admin) fez login
+[2025-04-17 21:34:32] [INFO] Usuário 12345 já está no grupo 12345
+[2025-04-17 21:34:43] [INFO] Usuário Stefani adicionado ao grupo 12345 por admin
+[2025-04-17 21:37:46] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-17 21:37:48] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-17 21:37:48] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-17 21:37:51] [INFO] Login bem-sucedido: admin
+[2025-04-17 21:37:51] [INFO] Usuário admin (admin) fez login
+[2025-04-17 21:38:21] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-17 21:38:22] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-17 21:38:22] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-17 21:38:26] [INFO] Login bem-sucedido: 12345
+[2025-04-17 21:38:26] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-17 21:38:37] [INFO] Tentando alterar cliente atual para usuário 12345: Facini
+[2025-04-17 21:38:37] [INFO] Cliente atual alterado para 'Facini' pelo usuário: 12345
+[2025-04-17 21:42:35] [INFO] Sistema encerrado pelo usuário 12345
+[2025-04-17 21:42:37] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-17 21:42:37] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-17 21:42:41] [INFO] Login bem-sucedido: admin
+[2025-04-17 21:42:41] [INFO] Usuário admin (admin) fez login
+[2025-04-17 21:43:01] [INFO] Tentando alterar cliente atual para usuário admin: Bastin Marketing
+[2025-04-17 21:43:01] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
+[2025-04-17 21:51:53] [INFO] Sistema encerrado pelo usuário admin

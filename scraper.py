@@ -124,22 +124,115 @@ def extrair_preco(url, seletor_css):
         print("Tentando extrair preço com Selenium (fallback)...")
         return extrair_preco_selenium(url, seletor_css)
 
-def registrar_preco(cliente, produto, concorrente, url, seletor_css=None, usuario_atual=None):
+def registrar_preco(cliente=None, produto=None, concorrente=None, url=None, id_produto=None, seletor_css=None, usuario_atual=None):
     """
     Extrai o preço de um produto e registra no histórico.
+    Versão compatível com banco de dados.
     
     Args:
         cliente (str): Nome do cliente
         produto (str): Nome do produto
         concorrente (str): Nome do concorrente
         url (str): URL do produto
-        seletor_css (str, optional): Seletor CSS do elemento de preço. Se None, tentará buscar do arquivo
+        id_produto (int, optional): ID do produto no banco de dados
+        seletor_css (str, optional): Seletor CSS do elemento de preço
         usuario_atual (str, optional): Nome do usuário que está registrando o preço
         
     Returns:
         bool: True se o preço foi registrado com sucesso, False caso contrário
     """
-    # Importar pandas aqui para evitar referência antes da definição
+    # Se estamos usando o banco de dados e temos o ID do produto
+    if id_produto is not None:
+        try:
+            from database_config import criar_conexao
+            
+            # Se não tiver seletor, busca no banco de dados
+            if seletor_css is None:
+                conexao, cursor = criar_conexao()
+                
+                # Tenta buscar seletor da plataforma do produto
+                cursor.execute('''
+                SELECT ps.seletor_css 
+                FROM produtos p
+                JOIN plataformas ps ON p.id_plataforma = ps.id
+                WHERE p.id = ?
+                ''', (id_produto,))
+                
+                resultado = cursor.fetchone()
+                
+                if resultado:
+                    seletor_css = resultado['seletor_css']
+                else:
+                    # Se não tiver plataforma, busca pelo domínio
+                    dominio = extrair_dominio(url)
+                    
+                    cursor.execute('''
+                    SELECT seletor_css FROM dominios WHERE nome = ?
+                    ''', (dominio,))
+                    
+                    resultado = cursor.fetchone()
+                    
+                    if resultado:
+                        seletor_css = resultado['seletor_css']
+                    else:
+                        print(f"Não foi encontrado um seletor CSS para a URL: {url}")
+                        conexao.close()
+                        return False
+                
+                conexao.close()
+            
+            # Extrair o preço usando o seletor
+            preco_texto = extrair_preco(url, seletor_css)
+            
+            if preco_texto:
+                valor = converter_preco(preco_texto)
+                
+                if valor is None:
+                    print(f"Falha ao converter o preço extraído: '{preco_texto}'")
+                    return False
+                
+# Registrar o preço no histórico
+                conexao, cursor = criar_conexao()
+                data_hoje = datetime.now().strftime('%Y-%m-%d')
+                
+                cursor.execute('''
+                INSERT INTO historico_precos (id_produto, preco, data) 
+                VALUES (?, ?, ?)
+                ''', (id_produto, valor, data_hoje))
+                
+                conexao.commit()
+                conexao.close()
+                
+                # Buscar informações do produto para exibição
+                conexao, cursor = criar_conexao()
+                cursor.execute('''
+                SELECT c.nome as cliente, p.nome as produto, p.concorrente 
+                FROM produtos p
+                JOIN clientes c ON p.id_cliente = c.id
+                WHERE p.id = ?
+                ''', (id_produto,))
+                
+                info_produto = cursor.fetchone()
+                conexao.close()
+                
+                if info_produto:
+                    cliente = info_produto['cliente']
+                    produto = info_produto['produto']
+                    concorrente = info_produto['concorrente']
+                    
+                print(f"Preço de {produto} (Cliente: {cliente}) em {concorrente}: R$ {valor:.2f} registrado com sucesso!")
+                return True
+            else:
+                print(f"Não foi possível obter o preço de {produto} (Cliente: {cliente}) em {concorrente}.")
+                return False
+                
+        except Exception as e:
+            depurar_logs(f"Erro ao registrar preço: {e}", "ERROR")
+            print(f"Erro ao registrar preço: {e}")
+            return False
+    
+    # Modo de arquivo CSV (código original)
+    # Nesta versão híbrida, mantemos o código original como fallback
     import pandas as pd
     
     # Determinar o grupo do usuário
@@ -184,45 +277,22 @@ def registrar_preco(cliente, produto, concorrente, url, seletor_css=None, usuari
     if seletor_css is None:
         try:
             if os.path.isfile('urls_monitoradas.csv'):
-                df_urls = pd.read_csv(arquivo_urls)
+                df_urls = pd.read_csv('urls_monitoradas.csv')
                 url_match = df_urls[df_urls['url'] == url]
                 
                 if not url_match.empty:
                     seletor_css = url_match.iloc[0]['seletor_css']
                 else:
-                    # Se não encontrar a URL, tenta buscar pela plataforma
-                    plataforma = None
+                    # Se não encontrar a URL, tenta buscar pelo domínio
+                    dominio = extrair_dominio(url)
+                    from database import carregar_dominios_seletores
+                    dominios_seletores = carregar_dominios_seletores()
                     
-                    # Busca em produtos_monitorados.csv se tiver a coluna 'plataforma'
-                    if os.path.isfile('produtos_monitorados.csv'):
-                        df_produtos = pd.read_csv('produtos_monitorados.csv')
-                        if 'plataforma' in df_produtos.columns:
-                            produto_match = df_produtos[(df_produtos['cliente'] == cliente) & 
-                                                     (df_produtos['produto'] == produto) &
-                                                     (df_produtos['url'] == url)]
-                            if not produto_match.empty and not pd.isnull(produto_match.iloc[0].get('plataforma', '')):
-                                plataforma = produto_match.iloc[0]['plataforma']
-                    
-                    # Se encontrou a plataforma, busca o seletor da plataforma
-                    if plataforma:
-                        from database import carregar_plataformas_seletores
-                        plataformas_seletores = carregar_plataformas_seletores()
-                        
-                        if plataforma in plataformas_seletores:
-                            seletor_css = plataformas_seletores[plataforma]
-                            print(f"Usando seletor da plataforma '{plataforma}': {seletor_css}")
-                    
-                    # Se não encontrou pela plataforma, tenta pelo domínio (método original)
-                    if not seletor_css:
-                        dominio = extrair_dominio(url)
-                        from database import carregar_dominios_seletores
-                        dominios_seletores = carregar_dominios_seletores()
-                        
-                        if dominio in dominios_seletores:
-                            seletor_css = dominios_seletores[dominio]
-                        else:
-                            print(f"Não foi encontrado um seletor CSS para a URL: {url}")
-                            return False
+                    if dominio in dominios_seletores:
+                        seletor_css = dominios_seletores[dominio]
+                    else:
+                        print(f"Não foi encontrado um seletor CSS para a URL: {url}")
+                        return False
         except Exception as e:
             print(f"Erro ao buscar seletor CSS: {e}")
             return False

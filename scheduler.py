@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Módulo de agendamento para o Sistema de Monitoramento de Preços
+---------------------------------------------------------------
+Versão para banco de dados SQLite.
+"""
+
 import os
 import time
-import pandas as pd
+import json
 import schedule
+from datetime import datetime
+from utils import depurar_logs
 from scraper import registrar_preco
-from grupos import obter_clientes_usuario, usuario_pode_acessar_cliente, obter_grupos_usuario
+from grupos_bd import obter_grupos_usuario, usuario_pode_acessar_cliente
 
 def monitorar_todos_produtos(usuario_atual=None):
     """
     Monitora todos os produtos cadastrados, extraindo e registrando seus preços.
-    Se um usuário for especificado, monitora apenas os produtos dos grupos
-    aos quais o usuário tem acesso.
     
     Args:
         usuario_atual (str, optional): Nome do usuário que solicitou o monitoramento
@@ -20,106 +26,146 @@ def monitorar_todos_produtos(usuario_atual=None):
     Returns:
         bool: True se pelo menos um produto foi monitorado com sucesso, False caso contrário
     """
-    arquivo_produtos = 'produtos_monitorados.csv'
-    arquivo_urls = 'urls_monitoradas.csv'
-    
-    if not os.path.isfile(arquivo_produtos):
-        print("Arquivo de produtos monitorados não encontrado. Adicione produtos primeiro.")
-        return False
+    try:
+        from database_config import criar_conexao
+        from grupos_bd import obter_grupos_usuario
+        from scraper import registrar_preco, extrair_dominio
         
-    if not os.path.isfile(arquivo_urls):
-        print("Arquivo de URLs monitoradas não encontrado. Isso pode causar problemas no monitoramento.")
-    
-    # Carregar dados de produtos
-    try:
-        df_produtos = pd.read_csv(arquivo_produtos)
-        if df_produtos.empty:
-            print("Não há produtos cadastrados para monitoramento.")
-            return False
-            
-        # Verifica se a coluna 'grupo' existe
-        if 'grupo' not in df_produtos.columns:
-            # Adiciona a coluna grupo se não existir
-            df_produtos['grupo'] = 'admin'
-            # Salva o arquivo atualizado
-            df_produtos.to_csv(arquivo_produtos, index=False)
-    except Exception as e:
-        print(f"Erro ao ler arquivo de produtos: {e}")
-        return False
-    
-    # Carregar dados de URLs (com seletores CSS)
-    try:
-        if os.path.isfile(arquivo_urls):
-            df_urls = pd.read_csv(arquivo_urls)
-        else:
-            print("Arquivo de URLs monitoradas não encontrado. Isso pode causar problemas no monitoramento.")
-            df_urls = pd.DataFrame(columns=['url', 'dominio', 'seletor_css'])
-    except Exception as e:
-        print(f"Erro ao ler arquivo de URLs: {e}")
-        df_urls = pd.DataFrame(columns=['url', 'dominio', 'seletor_css'])
-    
-    # Se um usuário for especificado, filtra os produtos de acordo com as permissões
-    if usuario_atual:
-        if usuario_atual == "admin" or "admin" in obter_grupos_usuario(usuario_atual):
+        conexao, cursor = criar_conexao()
+        
+        # Determina os grupos do usuário para filtrar
+        where_grupo = ""
+        params = []
+        
+        if usuario_atual == "admin" or (usuario_atual and "admin" in obter_grupos_usuario(usuario_atual)):
             # Administradores monitoram todos os produtos
             pass
         else:
-            # Usuários comuns monitoram apenas produtos do seu grupo
+            if not usuario_atual:
+                print("Usuário não identificado. Não é possível monitorar produtos.")
+                conexao.close()
+                return False
+                
             grupos = obter_grupos_usuario(usuario_atual)
+            if not grupos:
+                print("Você não tem acesso a nenhum grupo para monitorar produtos.")
+                conexao.close()
+                return False
+                
             # Filtra para obter apenas o grupo pessoal do usuário
             grupos_pessoais = [g for g in grupos if g != "all" and g != "admin"]
-            if grupos_pessoais:
-                grupo_usuario = grupos_pessoais[0]  # Usa o primeiro grupo pessoal encontrado
-                # Filtra produtos apenas do grupo do usuário
-                df_produtos = df_produtos[df_produtos['grupo'] == grupo_usuario]
+            if not grupos_pessoais:
+                print("Você não tem um grupo pessoal. Não é possível monitorar produtos.")
+                conexao.close()
+                return False
                 
-                if df_produtos.empty:
-                    print("Você não tem produtos no seu grupo para monitorar.")
-                    return False
-    
-    print(f"Iniciando monitoramento de {len(df_produtos)} produtos...")
-    sucesso = False
-    
-    for _, row in df_produtos.iterrows():
-        try:
-            # Busca o seletor CSS para a URL
-            seletor_css = None
-            url_row = df_urls[df_urls['url'] == row['url']]
+            grupo_usuario = grupos_pessoais[0]  # Usa o primeiro grupo pessoal encontrado
             
-            if not url_row.empty:
-                seletor_css = url_row.iloc[0]['seletor_css']
-            else:
-                # Se não encontrar, busca pelo domínio
-                from scraper import extrair_dominio
-                dominio = extrair_dominio(row['url'])
-                from database import carregar_dominios_seletores
-                dominios_seletores = carregar_dominios_seletores()
+            # Filtrar por grupo do usuário
+            where_grupo = "AND g.id_grupo = ?"
+            params.append(grupo_usuario)
+        
+        # Buscar todos os produtos
+        query = f'''
+        SELECT p.id, c.nome as cliente, p.nome as produto, p.concorrente, p.url, 
+               pl.seletor_css as plataforma_seletor, d.seletor_css as dominio_seletor
+        FROM produtos p
+        JOIN clientes c ON p.id_cliente = c.id
+        JOIN grupos g ON p.id_grupo = g.id
+        LEFT JOIN plataformas pl ON p.id_plataforma = pl.id
+        LEFT JOIN dominios d ON d.nome = ?
+        WHERE 1=1 {where_grupo}
+        ORDER BY c.nome, p.nome
+        '''
+        
+        produtos = []
+        
+        # Para cada produto, vamos determinar o seletor correto depois
+        for p in cursor.execute('''
+        SELECT p.id, c.nome as cliente, p.nome as produto, p.concorrente, p.url 
+        FROM produtos p
+        JOIN clientes c ON p.id_cliente = c.id
+        JOIN grupos g ON p.id_grupo = g.id
+        WHERE 1=1 ''' + where_grupo + '''
+        ORDER BY c.nome, p.nome
+        ''', params):
+            dominio = extrair_dominio(p['url'])
+            
+            # Buscar seletor da plataforma (se existir)
+            cursor.execute('''
+            SELECT pl.seletor_css 
+            FROM produtos p
+            JOIN plataformas pl ON p.id_plataforma = pl.id
+            WHERE p.id = ?
+            ''', (p['id'],))
+            
+            plataforma_result = cursor.fetchone()
+            plataforma_seletor = plataforma_result['seletor_css'] if plataforma_result else None
+            
+            # Buscar seletor do domínio (se existir)
+            cursor.execute('''
+            SELECT seletor_css FROM dominios WHERE nome = ?
+            ''', (dominio,))
+            
+            dominio_result = cursor.fetchone()
+            dominio_seletor = dominio_result['seletor_css'] if dominio_result else None
+            
+            # Adicionar todas as informações ao produto
+            produto_info = dict(p)
+            produto_info['plataforma_seletor'] = plataforma_seletor
+            produto_info['dominio_seletor'] = dominio_seletor
+            produto_info['dominio'] = dominio
+            
+            produtos.append(produto_info)
+        
+        conexao.close()
+        
+        if not produtos:
+            print("Não há produtos cadastrados para monitorar.")
+            return False
+        
+        print(f"Iniciando monitoramento de {len(produtos)} produtos...")
+        sucesso = False
+        
+        for produto in produtos:
+            try:
+                # Determinar qual seletor CSS usar
+                seletor_css = produto['plataforma_seletor'] or produto['dominio_seletor']
                 
-                if dominio in dominios_seletores:
-                    seletor_css = dominios_seletores[dominio]
-                else:
-                    print(f"Não foi encontrado um seletor CSS para a URL: {row['url']}")
-                    continue
-            
-            resultado = registrar_preco(
-                cliente=row['cliente'],
-                produto=row['produto'],
-                concorrente=row['concorrente'],
-                url=row['url'],
-                seletor_css=seletor_css,
-                usuario_atual=usuario_atual  # Passa o usuário atual para a função
-            )
-            if resultado:
-                sucesso = True
-        except KeyError as e:
-            print(f"Erro ao processar produto: Coluna '{e}' não encontrada. Verifique o formato dos dados.")
-            continue
-        except Exception as e:
-            print(f"Erro ao monitorar produto {row.get('produto', 'desconhecido')}: {e}")
-            continue
-            
-    print("Monitoramento concluído!")
-    return sucesso
+                if not seletor_css:
+                    # Se não encontrou seletor no banco, tenta buscar pelo domínio
+                    dominio = produto['dominio']
+                    from database_bd import carregar_dominios_seletores
+                    dominios_seletores = carregar_dominios_seletores()
+                    
+                    if dominio in dominios_seletores:
+                        seletor_css = dominios_seletores[dominio]
+                    else:
+                        print(f"Não foi encontrado um seletor CSS para a URL: {produto['url']}")
+                        continue
+                
+                resultado = registrar_preco(
+                    cliente=produto['cliente'],
+                    produto=produto['produto'],
+                    concorrente=produto['concorrente'],
+                    url=produto['url'],
+                    id_produto=produto['id'],
+                    seletor_css=seletor_css,
+                    usuario_atual=usuario_atual
+                )
+                
+                if resultado:
+                    sucesso = True
+            except Exception as e:
+                print(f"Erro ao monitorar produto {produto['produto']}: {e}")
+                continue
+        
+        print("Monitoramento concluído!")
+        return sucesso
+        
+    except Exception as e:
+        print(f"Erro ao executar monitoramento: {e}")
+        return False
 
 def configurar_agendamento():
     """
@@ -239,31 +285,98 @@ def executar_agendador():
 
 def salvar_configuracao_agendamento(schedule_info):
     """
-    Salva a configuração de agendamento em um arquivo para poder 
-    restaurar após reinicialização do programa.
+    Salva a configuração de agendamento na tabela de agendamento do banco de dados.
     
     Args:
         schedule_info (dict): Dicionário com as informações do agendamento
     """
-    import json
-    with open('agendamento_config.json', 'w', encoding='utf-8') as f:
-        json.dump(schedule_info, f, ensure_ascii=False, indent=4)
-    print("Configuração de agendamento salva.")
+    try:
+        from database_config import criar_conexao
+        
+        conexao, cursor = criar_conexao()
+        
+        # Verificar se já existe uma configuração
+        cursor.execute("SELECT id FROM agendamento")
+        agendamento_existente = cursor.fetchone()
+        
+        data_atual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        tipo = schedule_info.get('tipo', '')
+        dia = schedule_info.get('dia', '')
+        horario = schedule_info.get('horario', '')
+        
+        if agendamento_existente:
+            # Atualizar configuração existente
+            cursor.execute('''
+            UPDATE agendamento 
+            SET tipo = ?, dia = ?, horario = ?, data_criacao = ? 
+            WHERE id = ?
+            ''', (tipo, str(dia), horario, data_atual, agendamento_existente['id']))
+        else:
+            # Inserir nova configuração
+            cursor.execute('''
+            INSERT INTO agendamento (tipo, dia, horario, ativo, data_criacao)
+            VALUES (?, ?, ?, ?, ?)
+            ''', (tipo, str(dia), horario, 1, data_atual))
+        
+        conexao.commit()
+        conexao.close()
+        
+        print("Configuração de agendamento salva no banco de dados.")
+        
+        # Também salva em arquivo para compatibilidade
+        with open('agendamento_config.json', 'w', encoding='utf-8') as f:
+            json.dump(schedule_info, f, ensure_ascii=False, indent=4)
+        
+    except Exception as e:
+        print(f"Erro ao salvar configuração de agendamento: {e}")
+        
+        # Fallback para salvar em arquivo
+        with open('agendamento_config.json', 'w', encoding='utf-8') as f:
+            json.dump(schedule_info, f, ensure_ascii=False, indent=4)
+        print("Configuração de agendamento salva em arquivo.")
 
 def carregar_configuracao_agendamento():
     """
-    Carrega a configuração de agendamento do arquivo.
+    Carrega a configuração de agendamento do banco de dados.
     
     Returns:
         dict: Dicionário com as informações do agendamento, ou None se não existir
     """
-    import json
     try:
+        from database_config import criar_conexao
+        
+        conexao, cursor = criar_conexao()
+        
+        cursor.execute("SELECT tipo, dia, horario FROM agendamento WHERE ativo = 1")
+        config = cursor.fetchone()
+        
+        conexao.close()
+        
+        if config:
+            # Converter para o formato de dicionário
+            schedule_info = {
+                "tipo": config['tipo'],
+                "dia": config['dia'],
+                "horario": config['horario']
+            }
+            return schedule_info
+            
+        # Se não encontrar no banco, tenta carregar do arquivo
         if os.path.isfile('agendamento_config.json'):
             with open('agendamento_config.json', 'r', encoding='utf-8') as f:
                 return json.load(f)
-    except:
-        print("Erro ao carregar configuração de agendamento.")
+                
+    except Exception as e:
+        print(f"Erro ao carregar configuração de agendamento: {e}")
+        
+        # Fallback para carregar de arquivo
+        try:
+            if os.path.isfile('agendamento_config.json'):
+                with open('agendamento_config.json', 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except:
+            pass
+            
     return None
 
 def restaurar_agendamento():
@@ -310,6 +423,28 @@ def restaurar_agendamento():
             return False
             
         return True
-    except:
-        print("Erro ao restaurar agendamento.")
+    except Exception as e:
+        print(f"Erro ao restaurar agendamento: {e}")
         return False
+
+# Atualizar registro de última execução
+def atualizar_ultima_execucao():
+    """
+    Atualiza o registro de última execução do agendamento.
+    """
+    try:
+        from database_config import criar_conexao
+        
+        conexao, cursor = criar_conexao()
+        
+        data_atual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.execute("UPDATE agendamento SET ultima_execucao = ?", (data_atual,))
+        
+        conexao.commit()
+        conexao.close()
+        
+        depurar_logs(f"Registro de última execução atualizado: {data_atual}", "INFO")
+        
+    except Exception as e:
+        depurar_logs(f"Erro ao atualizar registro de última execução: {e}", "ERROR")
