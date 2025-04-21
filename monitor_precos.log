@@ -317,3 +317,35 @@
 [2025-04-17 21:43:01] [INFO] Tentando alterar cliente atual para usuário admin: Bastin Marketing
 [2025-04-17 21:43:01] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
 [2025-04-17 21:51:53] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-17 21:53:55] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-17 21:53:55] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-17 21:53:57] [INFO] Login bem-sucedido: admin
+[2025-04-17 21:53:57] [INFO] Usuário admin (admin) fez login
+[2025-04-18 11:35:10] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-18 11:35:10] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-18 11:35:14] [INFO] Login bem-sucedido: usuario
+[2025-04-18 11:35:14] [INFO] Usuário usuario (usuario) fez login
+[2025-04-18 11:37:21] [INFO] Tentando alterar cliente atual para usuário usuario: Fernando
+[2025-04-18 11:37:21] [INFO] Cliente atual alterado para 'Fernando' pelo usuário: usuario
+[2025-04-18 11:38:15] [INFO] Sistema encerrado pelo usuário usuario
+[2025-04-18 11:38:18] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-18 11:38:18] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-18 11:38:20] [WARNING] Tentativa de login falhou: aadmin
+[2025-04-18 11:38:23] [INFO] Login bem-sucedido: admin
+[2025-04-18 11:38:23] [INFO] Usuário admin (admin) fez login
+[2025-04-18 12:00:46] [INFO] Sistema encerrado pelo usuário admin
+[2025-04-18 12:00:48] [INFO] Grupos padrão criados/verificados com sucesso
+[2025-04-18 12:00:48] [INFO] Banco de dados contém 5 clientes e 4 produtos
+[2025-04-18 12:00:51] [INFO] Login bem-sucedido: admin
+[2025-04-18 12:00:51] [INFO] Usuário admin (admin) fez login
+[2025-04-18 12:02:05] [INFO] Tentando alterar cliente atual para usuário admin: Tparts
+[2025-04-18 12:02:05] [INFO] Cliente atual alterado para 'Tparts' pelo usuário: admin
+[2025-04-18 12:03:31] [INFO] Usuário admin fez logout
+[2025-04-18 12:03:37] [INFO] Login bem-sucedido: 12345
+[2025-04-18 12:03:37] [INFO] Usuário 12345 (usuario) fez login
+[2025-04-21 16:35:29] [INFO] Sistema encerrado pelo usuário 12345
+[2025-04-21 17:12:33] [INFO] Login bem-sucedido: usuario
+[2025-04-21 17:12:33] [INFO] Usuário usuario (usuario) fez login
+[2025-04-21 17:12:50] [INFO] Tentando alterar cliente atual para usuário usuario: Bastin Marketing
+[2025-04-21 17:12:50] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: usuario
+[2025-04-21 17:15:17] [INFO] Sistema encerrado pelo usuário usuario

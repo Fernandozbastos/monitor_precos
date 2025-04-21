@@ -124,10 +124,10 @@ def extrair_preco(url, seletor_css):
         print("Tentando extrair preço com Selenium (fallback)...")
         return extrair_preco_selenium(url, seletor_css)
 
-def registrar_preco(cliente=None, produto=None, concorrente=None, url=None, id_produto=None, seletor_css=None, usuario_atual=None):
+def registrar_preco(cliente=None, produto=None, concorrente=None, url=None, id_produto=None, seletor_css=None, usuario_atual=None, verificacao_manual=False):
     """
     Extrai o preço de um produto e registra no histórico.
-    Versão compatível com banco de dados.
+    Versão exclusiva para banco de dados SQLite com integração à fila de agendamento.
     
     Args:
         cliente (str): Nome do cliente
@@ -137,33 +137,63 @@ def registrar_preco(cliente=None, produto=None, concorrente=None, url=None, id_p
         id_produto (int, optional): ID do produto no banco de dados
         seletor_css (str, optional): Seletor CSS do elemento de preço
         usuario_atual (str, optional): Nome do usuário que está registrando o preço
+        verificacao_manual (bool, optional): Se True, marca o produto como verificado manualmente
         
     Returns:
         bool: True se o preço foi registrado com sucesso, False caso contrário
     """
-    # Se estamos usando o banco de dados e temos o ID do produto
-    if id_produto is not None:
-        try:
-            from database_config import criar_conexao
+    try:
+        from database_config import criar_conexao
+        from utils import depurar_logs
+        
+        # Se não temos o ID do produto, tentamos encontrá-lo no banco
+        if id_produto is None and cliente and produto and url:
+            conexao, cursor = criar_conexao()
             
-            # Se não tiver seletor, busca no banco de dados
-            if seletor_css is None:
-                conexao, cursor = criar_conexao()
+            cursor.execute('''
+            SELECT p.id 
+            FROM produtos p
+            JOIN clientes c ON p.id_cliente = c.id
+            WHERE c.nome = ? AND p.nome = ? AND p.url = ?
+            LIMIT 1
+            ''', (cliente, produto, url))
+            
+            resultado = cursor.fetchone()
+            
+            if resultado:
+                id_produto = resultado['id']
+            else:
+                print(f"Produto '{produto}' de '{cliente}' não encontrado no banco de dados.")
+                depurar_logs(f"Tentativa de registrar preço para produto não encontrado: {cliente}/{produto}", "WARNING")
+                conexao.close()
+                return False
                 
-                # Tenta buscar seletor da plataforma do produto
-                cursor.execute('''
-                SELECT ps.seletor_css 
-                FROM produtos p
-                JOIN plataformas ps ON p.id_plataforma = ps.id
-                WHERE p.id = ?
-                ''', (id_produto,))
-                
-                resultado = cursor.fetchone()
-                
-                if resultado:
-                    seletor_css = resultado['seletor_css']
-                else:
-                    # Se não tiver plataforma, busca pelo domínio
+            conexao.close()
+        
+        # Se ainda não temos ID do produto, não podemos continuar
+        if id_produto is None:
+            print("ID do produto não fornecido e não foi possível encontrá-lo no banco de dados.")
+            return False
+            
+        # Se não tiver seletor, busca no banco de dados
+        if seletor_css is None:
+            conexao, cursor = criar_conexao()
+            
+            # Tenta buscar seletor da plataforma do produto
+            cursor.execute('''
+            SELECT ps.seletor_css 
+            FROM produtos p
+            JOIN plataformas ps ON p.id_plataforma = ps.id
+            WHERE p.id = ?
+            ''', (id_produto,))
+            
+            resultado = cursor.fetchone()
+            
+            if resultado:
+                seletor_css = resultado['seletor_css']
+            else:
+                # Se não tiver plataforma, busca pelo domínio
+                if url:
                     dominio = extrair_dominio(url)
                     
                     cursor.execute('''
@@ -175,171 +205,106 @@ def registrar_preco(cliente=None, produto=None, concorrente=None, url=None, id_p
                     if resultado:
                         seletor_css = resultado['seletor_css']
                     else:
-                        print(f"Não foi encontrado um seletor CSS para a URL: {url}")
-                        conexao.close()
-                        return False
+                        # Se não encontrou no banco, buscar informações do produto para obter a URL
+                        cursor.execute('''
+                        SELECT p.url FROM produtos p WHERE p.id = ?
+                        ''', (id_produto,))
+                        
+                        result_url = cursor.fetchone()
+                        
+                        if result_url:
+                            url = result_url['url']
+                            dominio = extrair_dominio(url)
+                            
+                            cursor.execute('''
+                            SELECT seletor_css FROM dominios WHERE nome = ?
+                            ''', (dominio,))
+                            
+                            resultado = cursor.fetchone()
+                            
+                            if resultado:
+                                seletor_css = resultado['seletor_css']
                 
-                conexao.close()
-            
-            # Extrair o preço usando o seletor
-            preco_texto = extrair_preco(url, seletor_css)
-            
-            if preco_texto:
-                valor = converter_preco(preco_texto)
-                
-                if valor is None:
-                    print(f"Falha ao converter o preço extraído: '{preco_texto}'")
-                    return False
-                
-# Registrar o preço no histórico
-                conexao, cursor = criar_conexao()
-                data_hoje = datetime.now().strftime('%Y-%m-%d')
-                
-                cursor.execute('''
-                INSERT INTO historico_precos (id_produto, preco, data) 
-                VALUES (?, ?, ?)
-                ''', (id_produto, valor, data_hoje))
-                
-                conexao.commit()
-                conexao.close()
-                
-                # Buscar informações do produto para exibição
-                conexao, cursor = criar_conexao()
-                cursor.execute('''
-                SELECT c.nome as cliente, p.nome as produto, p.concorrente 
-                FROM produtos p
-                JOIN clientes c ON p.id_cliente = c.id
-                WHERE p.id = ?
-                ''', (id_produto,))
-                
-                info_produto = cursor.fetchone()
-                conexao.close()
-                
-                if info_produto:
-                    cliente = info_produto['cliente']
-                    produto = info_produto['produto']
-                    concorrente = info_produto['concorrente']
-                    
-                print(f"Preço de {produto} (Cliente: {cliente}) em {concorrente}: R$ {valor:.2f} registrado com sucesso!")
-                return True
-            else:
-                print(f"Não foi possível obter o preço de {produto} (Cliente: {cliente}) em {concorrente}.")
-                return False
-                
-        except Exception as e:
-            depurar_logs(f"Erro ao registrar preço: {e}", "ERROR")
-            print(f"Erro ao registrar preço: {e}")
-            return False
-    
-    # Modo de arquivo CSV (código original)
-    # Nesta versão híbrida, mantemos o código original como fallback
-    import pandas as pd
-    
-    # Determinar o grupo do usuário
-    grupo = None
-    if usuario_atual:
-        try:
-            from grupos import obter_grupos_usuario
-            grupos = obter_grupos_usuario(usuario_atual)
-            
-            if usuario_atual == "admin" or "admin" in grupos:
-                grupo = "admin"
-            else:
-                # Filtra para obter apenas o grupo pessoal do usuário
-                grupos_pessoais = [g for g in grupos if g != "all" and g != "admin"]
-                if grupos_pessoais:
-                    grupo = grupos_pessoais[0]  # Usa o primeiro grupo pessoal encontrado
-        except ImportError:
-            pass
-    
-    # Se não conseguir determinar o grupo, verifica no arquivo de produtos
-    if not grupo and os.path.isfile('produtos_monitorados.csv'):
-        try:
-            df_produtos = pd.read_csv('produtos_monitorados.csv')
-            
-            # Verifica se a coluna 'grupo' existe
-            if 'grupo' in df_produtos.columns:
-                # Busca o grupo para esta combinação específica de cliente, produto e URL
-                produto_match = df_produtos[(df_produtos['cliente'] == cliente) & 
-                                          (df_produtos['produto'] == produto) &
-                                          (df_produtos['url'] == url)]
-                
-                if not produto_match.empty:
-                    grupo = produto_match.iloc[0]['grupo']
-        except Exception:
-            pass
-    
-    # Se mesmo assim não conseguir determinar o grupo, usa 'admin' como padrão
-    if not grupo:
-        grupo = "admin"
-    
-    # Se não tiver seletor, busca do arquivo de URLs
-    if seletor_css is None:
-        try:
-            if os.path.isfile('urls_monitoradas.csv'):
-                df_urls = pd.read_csv('urls_monitoradas.csv')
-                url_match = df_urls[df_urls['url'] == url]
-                
-                if not url_match.empty:
-                    seletor_css = url_match.iloc[0]['seletor_css']
-                else:
-                    # Se não encontrar a URL, tenta buscar pelo domínio
-                    dominio = extrair_dominio(url)
-                    from database import carregar_dominios_seletores
+                if not seletor_css:
+                    # Último recurso: tentar acessar a tabela de dominios_seletores diretamente
+                    from database_bd import carregar_dominios_seletores
                     dominios_seletores = carregar_dominios_seletores()
                     
                     if dominio in dominios_seletores:
                         seletor_css = dominios_seletores[dominio]
                     else:
-                        print(f"Não foi encontrado um seletor CSS para a URL: {url}")
+                        print(f"Não foi encontrado um seletor CSS para o produto (ID: {id_produto}).")
+                        conexao.close()
                         return False
-        except Exception as e:
-            print(f"Erro ao buscar seletor CSS: {e}")
-            return False
-    
-    # Continua com a extração do preço
-    preco_texto = extrair_preco(url, seletor_css)
-    
-    if preco_texto:
-        valor = converter_preco(preco_texto)
-        if valor is None:
-            print(f"Falha ao converter o preço extraído: '{preco_texto}'")
-            return False
-        
-        data_hoje = datetime.now().strftime('%Y-%m-%d')
-        arquivo_csv = 'historico_precos.csv'
-        
-        # Novo registro com o campo 'grupo'
-        novo_registro = pd.DataFrame({
-            'data': [data_hoje],
-            'cliente': [cliente],
-            'produto': [produto],
-            'concorrente': [concorrente],
-            'preco': [valor],
-            'url': [url],
-            'grupo': [grupo]  # Adiciona o grupo ao registro
-        })
-        
-        if os.path.isfile(arquivo_csv):
-            try:
-                df_existente = pd.read_csv(arquivo_csv)
-                
-                # Verifica se a coluna 'grupo' existe
-                if 'grupo' not in df_existente.columns:
-                    # Adiciona a coluna grupo se não existir
-                    df_existente['grupo'] = 'admin'
-                
-                df_atualizado = pd.concat([df_existente, novo_registro], ignore_index=True)
-                df_atualizado.to_csv(arquivo_csv, index=False)
-            except Exception as e:
-                print(f"Erro ao atualizar arquivo de histórico: {e}")
-                # Cria um novo arquivo se houver erro
-                novo_registro.to_csv(arquivo_csv, index=False)
-        else:
-            novo_registro.to_csv(arquivo_csv, index=False)
             
-        print(f"Preço de {produto} (Cliente: {cliente}) em {concorrente}: R$ {valor:.2f} registrado com sucesso!")
-        return True
-    else:
-        print(f"Não foi possível obter o preço de {produto} (Cliente: {cliente}) em {concorrente}.")
+            conexao.close()
+            
+        # Se mesmo assim não temos seletor e URL, não podemos prosseguir
+        if not seletor_css or not url:
+            print(f"Dados insuficientes para verificar preço: seletor CSS ou URL ausente.")
+            return False
+            
+        # Extrair o preço usando o seletor
+        preco_texto = extrair_preco(url, seletor_css)
+        
+        if preco_texto:
+            valor = converter_preco(preco_texto)
+            
+            if valor is None:
+                print(f"Falha ao converter o preço extraído: '{preco_texto}'")
+                return False
+            
+            # Registrar o preço no histórico
+            conexao, cursor = criar_conexao()
+            data_hoje = datetime.now().strftime('%Y-%m-%d')
+            
+            cursor.execute('''
+            INSERT INTO historico_precos (id_produto, preco, data) 
+            VALUES (?, ?, ?)
+            ''', (id_produto, valor, data_hoje))
+            
+            conexao.commit()
+            
+            # Buscar informações do produto para exibição
+            cursor.execute('''
+            SELECT c.nome as cliente, p.nome as produto, p.concorrente 
+            FROM produtos p
+            JOIN clientes c ON p.id_cliente = c.id
+            WHERE p.id = ?
+            ''', (id_produto,))
+            
+            info_produto = cursor.fetchone()
+            conexao.close()
+            
+            if info_produto:
+                cliente = info_produto['cliente']
+                produto = info_produto['produto']
+                concorrente = info_produto['concorrente']
+                
+            print(f"Preço de {produto} (Cliente: {cliente}) em {concorrente}: R$ {valor:.2f} registrado com sucesso!")
+            
+            # Atualizar o status na fila de agendamento
+            try:
+                if verificacao_manual:
+                    # Se for verificação manual, remove o produto da fila do dia
+                    from scheduler import remover_produto_fila_dia
+                    remover_produto_fila_dia(id_produto)
+                    print(f"Produto removido da fila do dia (verificação manual).")
+                else:
+                    # Se for verificação automática, move para o final da fila
+                    from scheduler import mover_produto_final_fila
+                    mover_produto_final_fila(id_produto)
+                    print(f"Produto movido para o final da fila de agendamento.")
+            except Exception as e:
+                depurar_logs(f"Erro ao atualizar produto na fila: {e}", "WARNING")
+                print(f"Aviso: Não foi possível atualizar o status do produto na fila de agendamento.")
+            
+            return True
+        else:
+            print(f"Não foi possível obter o preço de {produto} (Cliente: {cliente}) em {concorrente}.")
+            return False
+            
+    except Exception as e:
+        depurar_logs(f"Erro ao registrar preço: {e}", "ERROR")
+        print(f"Erro ao registrar preço: {e}")
         return False

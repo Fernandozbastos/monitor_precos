@@ -1,20 +1,49 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""
-Configuração de Banco de Dados para o Sistema de Monitoramento de Preços
-------------------------------------------------------------------------
-Gerencia a conexão e a estrutura do banco de dados SQLite.
-"""
-
 import sqlite3
 import os
 import pandas as pd
 from datetime import datetime
-from utils import depurar_logs
 
 # Caminho do banco de dados
 DB_FILE = 'monitor_precos.db'
+
+def criar_tabela_fila_agendamento():
+    """
+    Cria a tabela para a fila de agendamento se não existir.
+    
+    Returns:
+        bool: True se a tabela foi criada ou já existe, False caso contrário
+    """
+    try:
+        conexao, cursor = criar_conexao()
+        
+        # Criar tabela de fila de agendamento
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS fila_agendamento (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_produto INTEGER NOT NULL,
+            posicao_fila INTEGER NOT NULL,
+            data_inclusao TEXT NOT NULL,
+            ultima_verificacao TEXT,
+            verificacao_manual INTEGER DEFAULT 0,
+            FOREIGN KEY (id_produto) REFERENCES produtos (id),
+            UNIQUE(id_produto)
+        )
+        ''')
+        
+        # Criar índice para otimizar consultas
+        cursor.execute('''
+        CREATE INDEX IF NOT EXISTS idx_fila_posicao ON fila_agendamento (posicao_fila)
+        ''')
+        
+        conexao.commit()
+        conexao.close()
+        
+        depurar_logs("Tabela de fila de agendamento verificada/criada com sucesso", "INFO")
+        return True
+        
+    except Exception as e:
+        depurar_logs(f"Erro ao criar tabela de fila de agendamento: {e}", "ERROR")
+        return False
 
 def criar_conexao():
     """
@@ -160,6 +189,10 @@ def inicializar_banco_dados():
         )
         ''')
         
+        verificar_dados()
+                
+        return True
+
         conexao.commit()
         conexao.close()
         
@@ -169,6 +202,9 @@ def inicializar_banco_dados():
         # Criar usuário admin padrão se não existir
         criar_admin_padrao()
         
+        # Criar tabela de fila de agendamento
+        criar_tabela_fila_agendamento()
+        
         # Verificar os dados
         verificar_dados()
         
@@ -176,6 +212,8 @@ def inicializar_banco_dados():
     except Exception as e:
         depurar_logs(f"Erro ao inicializar banco de dados: {e}", "ERROR")
         return False
+    
+        
 
 def criar_grupos_padrao():
     """Cria os grupos padrão (admin e all) se não existirem."""
@@ -202,10 +240,9 @@ def criar_grupos_padrao():
         
         conexao.commit()
         conexao.close()
-        depurar_logs("Grupos padrão criados/verificados com sucesso", "INFO")
         return True
     except Exception as e:
-        depurar_logs(f"Erro ao criar grupos padrão: {e}", "ERROR")
+        print(f"Erro ao criar grupos padrão: {e}")
         return False
 
 def criar_admin_padrao():
@@ -246,50 +283,12 @@ def criar_admin_padrao():
             INSERT INTO usuarios_grupos (id_usuario, id_grupo, data_associacao)
             VALUES (?, ?, ?)
             ''', (id_usuario, id_grupo_all, data_atual))
-            
-            depurar_logs("Usuário admin padrão criado com sucesso", "INFO")
         
         conexao.commit()
         conexao.close()
         return True
     except Exception as e:
-        depurar_logs(f"Erro ao criar usuário admin padrão: {e}", "ERROR")
-        return False
-
-def verificar_dados():
-    """
-    Verifica se o banco de dados contém dados básicos necessários.
-    """
-    try:
-        conexao, cursor = criar_conexao()
-        
-        # Verificar usuário admin
-        cursor.execute("SELECT COUNT(*) as count FROM usuarios WHERE username = 'admin'")
-        resultado = cursor.fetchone()
-        if resultado['count'] == 0:
-            depurar_logs("Usuário admin não encontrado. Criando...", "WARNING")
-            criar_admin_padrao()
-        
-        # Verificar grupos padrão
-        cursor.execute("SELECT COUNT(*) as count FROM grupos WHERE id_grupo IN ('admin', 'all')")
-        resultado = cursor.fetchone()
-        if resultado['count'] < 2:
-            depurar_logs("Grupos padrão não encontrados. Criando...", "WARNING")
-            criar_grupos_padrao()
-        
-        # Verificar quantidade de dados
-        cursor.execute("SELECT COUNT(*) as count FROM clientes")
-        resultado_clientes = cursor.fetchone()
-        
-        cursor.execute("SELECT COUNT(*) as count FROM produtos")
-        resultado_produtos = cursor.fetchone()
-        
-        depurar_logs(f"Banco de dados contém {resultado_clientes['count']} clientes e {resultado_produtos['count']} produtos", "INFO")
-        
-        conexao.close()
-        return True
-    except Exception as e:
-        depurar_logs(f"Erro ao verificar dados: {e}", "ERROR")
+        print(f"Erro ao criar usuário admin padrão: {e}")
         return False
 
 def migrar_dados_csv_para_sqlite():
@@ -300,7 +299,7 @@ def migrar_dados_csv_para_sqlite():
         bool: True se a migração foi bem-sucedida, False caso contrário
     """
     try:
-        depurar_logs("Iniciando migração de dados...", "INFO")
+        print("Iniciando migração de dados...")
         
         # 1. Migrar plataformas
         if os.path.isfile('plataformas_seletores.json'):
@@ -319,7 +318,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migradas {len(plataformas)} plataformas", "INFO")
+            print(f"Migradas {len(plataformas)} plataformas")
         
         # 2. Migrar domínios
         if os.path.isfile('dominios_seletores.json'):
@@ -338,7 +337,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migrados {len(dominios)} domínios", "INFO")
+            print(f"Migrados {len(dominios)} domínios")
         
         # 3. Migrar usuários
         if os.path.isfile('usuarios.json'):
@@ -365,7 +364,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migrados {len(usuarios)} usuários", "INFO")
+            print(f"Migrados {len(usuarios)} usuários")
         
         # 4. Migrar grupos e associações
         if os.path.isfile('grupos.json'):
@@ -410,7 +409,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migrados {len(grupos)} grupos e suas associações", "INFO")
+            print(f"Migrados {len(grupos)} grupos e suas associações")
         
         # 5. Migrar clientes
         clientes_existentes = set()
@@ -433,7 +432,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migrados {len(clientes_existentes)} clientes do arquivo clientes.csv", "INFO")
+            print(f"Migrados {len(clientes_existentes)} clientes do arquivo clientes.csv")
         
         # Depois, obter clientes do arquivo produtos_monitorados.csv
         if os.path.isfile('produtos_monitorados.csv'):
@@ -457,7 +456,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migrados mais {novos_clientes} clientes do arquivo produtos_monitorados.csv", "INFO")
+            print(f"Migrados mais {novos_clientes} clientes do arquivo produtos_monitorados.csv")
             
             # Migrar associações entre clientes e grupos
             if os.path.isfile('grupos.json'):
@@ -487,7 +486,7 @@ def migrar_dados_csv_para_sqlite():
                 
                 conexao.commit()
                 conexao.close()
-                depurar_logs("Migradas associações entre clientes e grupos", "INFO")
+                print("Migradas associações entre clientes e grupos")
         
         # 6. Migrar produtos
         if os.path.isfile('produtos_monitorados.csv'):
@@ -544,7 +543,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migrados {produtos_migrados} produtos", "INFO")
+            print(f"Migrados {produtos_migrados} produtos")
         
         # 7. Migrar histórico de preços
         if os.path.isfile('historico_precos.csv'):
@@ -580,7 +579,7 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs(f"Migrados {historico_migrado} registros de histórico de preços", "INFO")
+            print(f"Migrados {historico_migrado} registros de histórico de preços")
         
         # 8. Migrar configuração de agendamento
         if os.path.isfile('agendamento_config.json'):
@@ -604,10 +603,48 @@ def migrar_dados_csv_para_sqlite():
             
             conexao.commit()
             conexao.close()
-            depurar_logs("Migrada configuração de agendamento", "INFO")
+            print("Migrada configuração de agendamento")
         
-        depurar_logs("Migração concluída com sucesso!", "INFO")
+        print("Migração concluída com sucesso!")
         return True
     except Exception as e:
-        depurar_logs(f"Erro durante a migração: {e}", "ERROR")
+        print(f"Erro durante a migração: {e}")
+        return False
+
+# No arquivo database_config.py, verifique estas funções
+
+def verificar_dados():
+    """
+    Verifica se o banco de dados contém dados básicos necessários.
+    """
+    try:
+        conexao, cursor = criar_conexao()
+        
+        # Verificar usuário admin
+        cursor.execute("SELECT COUNT(*) as count FROM usuarios WHERE username = 'admin'")
+        resultado = cursor.fetchone()
+        if resultado['count'] == 0:
+            print("Usuário admin não encontrado. Criando...")
+            criar_admin_padrao()
+        
+        # Verificar grupos padrão
+        cursor.execute("SELECT COUNT(*) as count FROM grupos WHERE id_grupo IN ('admin', 'all')")
+        resultado = cursor.fetchone()
+        if resultado['count'] < 2:
+            print("Grupos padrão não encontrados. Criando...")
+            criar_grupos_padrao()
+        
+        # Verificar quantidade de dados
+        cursor.execute("SELECT COUNT(*) as count FROM clientes")
+        resultado_clientes = cursor.fetchone()
+        
+        cursor.execute("SELECT COUNT(*) as count FROM produtos")
+        resultado_produtos = cursor.fetchone()
+        
+        print(f"Banco de dados contém {resultado_clientes['count']} clientes e {resultado_produtos['count']} produtos")
+        
+        conexao.close()
+        return True
+    except Exception as e:
+        print(f"Erro ao verificar dados: {e}")
         return False

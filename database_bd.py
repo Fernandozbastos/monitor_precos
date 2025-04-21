@@ -383,8 +383,13 @@ def adicionar_produto(cliente=None, produto=None, concorrente=None, url=None, us
                     usuario_atual=usuario_atual
                 )
                 
+                # NOVO: Adicionar o produto à fila de agendamento
+                from scheduler import adicionar_produto_fila
+                adicionar_produto_fila(id_produto)
+                
                 depurar_logs(f"Produto '{produto}' do cliente '{cliente}' adicionado por {usuario_atual} no grupo {grupo_usuario}", "INFO")
                 print(f"Produto '{produto}' do cliente '{cliente}' adicionado com sucesso para monitoramento!")
+                print("O produto foi adicionado à fila de agendamento automático.")
                 
                 return True
                 
@@ -404,7 +409,7 @@ def adicionar_produto(cliente=None, produto=None, concorrente=None, url=None, us
         depurar_logs(f"Erro ao adicionar produto: {e}", "ERROR")
         print(f"Erro ao adicionar produto: {e}")
         return False
-
+    
 def remover_produto(usuario_atual=None):
     """
     Remove um produto da lista de monitoramento.
