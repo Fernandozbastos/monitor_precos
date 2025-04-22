@@ -1,0 +1,18 @@
+# Requisitos básicos
+requests>=2.25.1
+beautifulsoup4>=4.9.3
+schedule>=1.1.0
+
+# Dependências para sites dinâmicos
+selenium>=4.1.0
+webdriver-manager>=3.5.2
+
+# Opcional - Dependências úteis
+python-dateutil>=2.8.2
+tabulate>=0.8.9  # Para formatação de tabelas no terminal
+tqdm>=4.61.0     # Para barras de progresso
+
+# Requisitos de desenvolvimento (opcional)
+# pytest>=6.2.5
+# black>=21.5b2
+# flake8>=3.9.2

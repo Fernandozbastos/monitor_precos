@@ -405,23 +405,3 @@
 [2025-04-21 21:11:12] [INFO] Banco de dados inicializado com sucesso
 [2025-04-21 21:11:14] [INFO] Acesso registrado para o usuário: admin
 [2025-04-21 21:11:14] [INFO] Login bem-sucedido: admin
-[2025-04-21 21:11:38] [INFO] Backup completo criado em backups/20250421_211138
-[2025-04-21 21:12:06] [INFO] Banco de dados otimizado (VACUUM)
-[2025-04-21 21:12:19] [INFO] Índices reconstruídos com sucesso
-[2025-04-21 21:12:41] [INFO] Sistema encerrado pelo usuário admin
-[2025-04-21 21:12:43] [INFO] Sistema iniciado
-[2025-04-21 21:12:43] [INFO] Dados padrão verificados/criados com sucesso
-[2025-04-21 21:12:43] [INFO] Banco de dados inicializado com sucesso
-[2025-04-21 21:12:45] [INFO] Acesso registrado para o usuário: usuario
-[2025-04-21 21:12:45] [INFO] Login bem-sucedido: usuario
-[2025-04-21 21:13:00] [INFO] Sistema encerrado pelo usuário usuario
-[2025-04-21 21:13:01] [INFO] Sistema iniciado
-[2025-04-21 21:13:01] [INFO] Dados padrão verificados/criados com sucesso
-[2025-04-21 21:13:01] [INFO] Banco de dados inicializado com sucesso
-[2025-04-21 21:13:02] [INFO] Acesso registrado para o usuário: admin
-[2025-04-21 21:13:02] [INFO] Login bem-sucedido: admin
-[2025-04-21 21:13:09] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
-[2025-04-21 21:13:09] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
-[2025-04-21 21:13:24] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
-[2025-04-21 21:13:24] [INFO] Cliente atual alterado para 'Bastin Marketing' pelo usuário: admin
-[2025-04-21 21:23:26] [INFO] Sistema encerrado pelo usuário admin
